@@ -138,7 +138,7 @@ public class Window implements WindowInterface {
         UIManager.put("Panel.background", new Color(245, 245, 250));
         UIManager.put("Frame.background", Color.white);
         UIManager.put("MenuBar.background", Color.white);
-        UIManager.put("MenuBar.foreground", Color.white);
+        UIManager.put("MenuBar.foreground", Color.black);
         UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(5, 5, 5, 5));
         UIManager.put("Menu.background", new Color(255, 220, 240));
         UIManager.put("Menu.foreground", new Color(70, 0, 50));
