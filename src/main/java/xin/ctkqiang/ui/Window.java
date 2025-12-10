@@ -1,9 +1,12 @@
 package xin.ctkqiang.ui;
 
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.net.URI;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -56,9 +59,22 @@ public class Window implements WindowInterface {
         });
 
 
+        helpMenu.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Desktop.getDesktop().browse(URI.create("https://github.com/ctkqiang/ZhiMing/issues"));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
         this.menubar.add(fileMenu);
+        this.menubar.add(helpMenu);
 
         fileMenu.add(saveMenuItem);
+        fileMenu.add(importPasswordMenuItem);
         fileMenu.add(exitMenuItem);
 
         frame.setJMenuBar(menubar);
