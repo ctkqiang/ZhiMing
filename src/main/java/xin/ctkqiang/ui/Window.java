@@ -243,6 +243,7 @@ public class Window implements WindowInterface {
         exitMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                logger.info("退出");
                 System.exit(0);
             } 
         });
