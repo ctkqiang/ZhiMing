@@ -35,25 +35,20 @@ public class Window implements WindowInterface {
 
     private void setTextField(JFrame frame) {
         JButton actionButton = new JButton("开始攻击");
-        JTextField urlOrIp = new JTextField();
-
-       
+        JTextField urlOrIp = new JTextField(20); 
+        
+        urlOrIp.setBorder(BorderFactory.createCompoundBorder(
+            urlOrIp.getBorder(),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        
         JPanel inputPanel = new JPanel(new BorderLayout(10, 0));
-        inputPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        inputPanel.setBackground(UIManager.getColor("Panel.background"));
+        
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         inputPanel.add(urlOrIp, BorderLayout.CENTER);
         inputPanel.add(actionButton, BorderLayout.EAST);
-
-    
-        JPanel containerPanel = new JPanel(new BorderLayout());
-        containerPanel.setBackground(UIManager.getColor("Panel.background"));
-        containerPanel.add(inputPanel, BorderLayout.CENTER);
-
         
-        containerPanel.setBounds(0, 0, frame.getWidth(), 80); 
-
-        frame.getContentPane().setBackground(UIManager.getColor("Frame.background"));
-        frame.getContentPane().add(containerPanel, BorderLayout.NORTH);
+        frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
     }
 
 
@@ -95,11 +90,7 @@ public class Window implements WindowInterface {
         helpMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    Desktop.getDesktop().browse(URI.create("https://github.com/ctkqiang/ZhiMing/issues"));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                System.out.println("");
             }
         });
 
@@ -117,6 +108,8 @@ public class Window implements WindowInterface {
         this.setUIContext();
         
         this.frame.setSize(width, height);
+        this.frame.setAlwaysOnTop(true);
+        this.frame.setForeground(Color.BLACK);
         this.frame.setTitle(title);
         this.frame.getContentPane().setLayout(new BorderLayout());
         this.frame.setBackground(Color.white);
@@ -126,24 +119,26 @@ public class Window implements WindowInterface {
 
         this.frame.getContentPane().setBackground(UIManager.getColor("Frame.background"));
         this.frame.setVisible(true);
-        
+
+        System.out.println("Frame width: " + frame.getWidth());
+        System.out.println("Frame height: " + frame.getHeight());
     }   
 
     private void setUIContext() {
         this.setAppIcon(frame, "/assets/appicon.png");
         
         UIManager.put("Button.background", new Color(255, 200, 230));
-        UIManager.put("Button.foreground", new Color(80, 0, 40));
+        UIManager.put("Button.foreground", Color.black);
         UIManager.put("Label.font", new Font("Segoe UI", Font.PLAIN, 14));
-        UIManager.put("Panel.background", new Color(245, 245, 250));
+        UIManager.put("Panel.background", Color.white);
         UIManager.put("Frame.background", Color.white);
         UIManager.put("MenuBar.background", Color.white);
         UIManager.put("MenuBar.foreground", Color.black);
         UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        UIManager.put("Menu.background", new Color(255, 220, 240));
-        UIManager.put("Menu.foreground", new Color(70, 0, 50));
-        UIManager.put("MenuItem.background", new Color(255, 230, 245));
-        UIManager.put("MenuItem.foreground", new Color(70, 0, 50));
+        UIManager.put("Menu.background", Color.white);
+        UIManager.put("Menu.foreground", Color.black);
+        UIManager.put("MenuItem.background", Color.white);
+        UIManager.put("MenuItem.foreground", Color.black);
     }
 
     private void setAppIcon(JFrame frame, String imagePath) {
