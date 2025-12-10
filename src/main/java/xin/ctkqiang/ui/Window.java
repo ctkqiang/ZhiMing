@@ -42,6 +42,7 @@ public class Window implements WindowInterface {
         this.onInit();
     }
 
+    @ZhiMing(debug=true)
     private void setTextField(JFrame frame) {
         JButton actionButton = new JButton("开始攻击");
         JTextField urlOrIp = new JTextField(20);
@@ -50,6 +51,7 @@ public class Window implements WindowInterface {
         urlOrIp.setPreferredSize(new java.awt.Dimension(300, 30));
         urlOrIp.setText("请输入目标网址或IP地址...");
         urlOrIp.setForeground(Color.gray);
+        urlOrIp.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         urlOrIp.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
@@ -65,6 +67,12 @@ public class Window implements WindowInterface {
                     urlOrIp.setText("请输入目标网址或IP地址...");
                     urlOrIp.setForeground(Color.GRAY);
                 }
+            }
+        });
+        urlOrIp.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               actionButton.doClick();
             }
         });
         
@@ -83,8 +91,7 @@ public class Window implements WindowInterface {
             new Font("微软雅黑", Font.BOLD, 14),
             Color.gray
         ));
-
-
+        
         actionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -147,6 +154,8 @@ public class Window implements WindowInterface {
         JMenuItem importPasswordMenuItem = new JMenuItem("导入密码 (.txt)");
         JMenuItem exitMenuItem = new JMenuItem("退出");
 
+        JMenuItem issueMenuItem = new JMenuItem("Issues");
+
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
         saveMenuItem.setActionCommand("保存");
         saveMenuItem.addActionListener(new ActionListener() {
@@ -174,15 +183,23 @@ public class Window implements WindowInterface {
             } 
         });
 
-        helpMenu.addActionListener(new ActionListener() {
+        issueMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                logger.info("正在打开帮助文档...");
+                try {
+                    Runtime.getRuntime().exec(System.getProperty("os.name").toLowerCase().startsWith("win") 
+                        ? "cmd /c start https://github.com/ctkqiang/ZhiMing/issues" 
+                        : "open https://github.com/ctkqiang/ZhiMing/issues");
+                } catch (Exception ex) {
+                    logger.error("无法打开浏览器: {}", ex.getMessage());
+                }
             }
         });
 
         this.menubar.add(fileMenu);
         this.menubar.add(helpMenu);
+
+        helpMenu.add(issueMenuItem);
 
         fileMenu.add(saveMenuItem);
         fileMenu.add(importPasswordMenuItem);
@@ -210,25 +227,43 @@ public class Window implements WindowInterface {
         this.frame.setBackground(Color.white);
 
         if (ZhiMingContext.isDebug()) {
-            logger.debug("窗口宽度: %s 窗口高度: %s%n", frame.getWidth(), frame.getHeight());
+            logger.debug("窗口宽度: %s 窗口高度: %s", frame.getWidth(), frame.getHeight());
         }
     }   
 
     private void setUIContext() {
         this.setAppIcon(frame, "/assets/appicon.png");
         
+        // 设置中文字体和颜色主题
+        Font chineseFont = new Font("Microsoft YaHei", Font.PLAIN, 14);
+        Font chineseFontBold = new Font("Microsoft YaHei", Font.BOLD, 14);
+        
         UIManager.put("Button.background", new Color(255, 200, 230));
-        UIManager.put("Button.foreground", Color.black);
-        UIManager.put("Label.font", new Font("Segoe UI", Font.PLAIN, 14));
-        UIManager.put("Panel.background", Color.white);
+        UIManager.put("Button.foreground", new Color(80, 0, 40));
+        UIManager.put("Button.font", chineseFont);
+        
+        UIManager.put("Label.font", chineseFont);
+        UIManager.put("TextField.font", chineseFont);
+        
+        UIManager.put("Panel.background", new Color(245, 245, 250));
         UIManager.put("Frame.background", Color.white);
+        
         UIManager.put("MenuBar.background", Color.white);
         UIManager.put("MenuBar.foreground", Color.black);
         UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        UIManager.put("Menu.background", Color.white);
-        UIManager.put("Menu.foreground", Color.black);
-        UIManager.put("MenuItem.background", Color.white);
-        UIManager.put("MenuItem.foreground", Color.black);
+        UIManager.put("MenuBar.font", chineseFont);
+        
+        UIManager.put("Menu.background", new Color(255, 220, 240));
+        UIManager.put("Menu.foreground", new Color(70, 0, 50));
+        UIManager.put("Menu.font", chineseFont);
+        
+        UIManager.put("MenuItem.background", new Color(255, 230, 245));
+        UIManager.put("MenuItem.foreground", new Color(70, 0, 50));
+        UIManager.put("MenuItem.font", chineseFont);
+        
+        // 设置文本框字体
+        UIManager.put("TextField.font", chineseFont);
+        UIManager.put("TextArea.font", chineseFont);
     }
 
     private void setAppIcon(JFrame frame, String imagePath) {

@@ -1,6 +1,7 @@
 package xin.ctkqiang.utilities;
 
 import xin.ctkqiang.constant.ConstantsString;
+import xin.ctkqiang.model.Platform;
 
 public class Logger {
     private static final String appName = ConstantsString.appName;
@@ -33,4 +34,12 @@ public class Logger {
     public void debug(String message, Object... args) {
         System.out.printf(PURPLE + "（%s）【调试】：%s%n" + RESET, appName, String.format(message, args));
     }
+
+    public Platform getPlatform() {
+        String os = System.getProperty("os.name").toLowerCase();
+
+        if (os.contains("win")) return Platform.DOS;
+
+        return Platform.UNIX;
+    } 
 }
