@@ -17,48 +17,54 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
-    <!-- <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-toolchains-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <toolchains>
-                        <jdk>
-                            <version>11</version>
-                            <vendor>any</vendor>
-                        </jdk>
-                        <jdk>
-                            <version>17</version>
-                            <vendor>any</vendor>
-                        </jdk>
-                        <jdk>
-                            <version>21</version>
-                            <vendor>any</vendor>
-                        </jdk>
-                    </toolchains>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>toolchain</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+    <profiles>
+        <profile>
+            <id>java11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <java.version>11</java.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>java17</id>
+            <activation>
+                <jdk>17</jdk>
+            </activation>
+            <properties>
+                <java.version>17</java.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>java21</id>
+            <activation>
+                <jdk>21</jdk>
+            </activation>
+            <properties>
+                <java.version>21</java.version>
+            </properties>
+        </profile>
+    </profiles>
 
+    <build>
+        <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <arg>-encoding</arg>
+                        <arg>UTF-8</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
         </plugins>
-    </build> -->
+    </build>
 
     <dependencies>
 
