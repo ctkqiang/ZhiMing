@@ -1,5 +1,6 @@
 package xin.ctkqiang.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Font;
@@ -34,22 +35,27 @@ public class Window implements WindowInterface {
 
     private void setTextField(JFrame frame) {
         JButton actionButton = new JButton("开始攻击");
-        JPanel panel = new JPanel();
         JTextField urlOrIp = new JTextField();
 
-        urlOrIp = new JTextField();
-        urlOrIp.setBounds(20, 20, frame.getWidth() - 240, 30);
-        urlOrIp.setText("");
+       
+        JPanel inputPanel = new JPanel(new BorderLayout(10, 0));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        inputPanel.setBackground(UIManager.getColor("Panel.background"));
+        inputPanel.add(urlOrIp, BorderLayout.CENTER);
+        inputPanel.add(actionButton, BorderLayout.EAST);
+
+    
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        containerPanel.setBackground(UIManager.getColor("Panel.background"));
+        containerPanel.add(inputPanel, BorderLayout.CENTER);
+
         
-        actionButton.setBounds(800, 20, 180, 30);
-        
-        panel.setLayout(null);
-        panel.add(urlOrIp);
-        panel.add(actionButton);
-        panel.setBounds(0, 0, frame.getWidth(), 80);
-        
-        frame.add(panel);
+        containerPanel.setBounds(0, 0, frame.getWidth(), 80); 
+
+        frame.getContentPane().setBackground(UIManager.getColor("Frame.background"));
+        frame.getContentPane().add(containerPanel, BorderLayout.NORTH);
     }
+
 
     private void setMenuBar(JFrame frame) {
         JMenu fileMenu = new JMenu("文件");
@@ -109,7 +115,7 @@ public class Window implements WindowInterface {
     
     public void main(int width, int height, String title) {   
         this.setUIContext();
-
+        
         this.setMenuBar(this.frame);
         this.setTextField(this.frame);
 
@@ -117,9 +123,10 @@ public class Window implements WindowInterface {
 
         this.frame.setSize(width, height);
         this.frame.setTitle(title);
-        this.frame.setLayout(null);
+        this.frame.getContentPane().setLayout(new BorderLayout());
         this.frame.setBackground(Color.white);
         this.frame.setVisible(true);
+        
     }   
 
     private void setUIContext() {
