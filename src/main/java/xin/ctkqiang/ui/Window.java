@@ -3,21 +3,20 @@ package xin.ctkqiang.ui;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.event.MenuListener;
-
 import xin.ctkqiang.interfaces.WindowInterface;
 import xin.ctkqiang.interfaces.ZhiMing;
+import xin.ctkqiang.utilities.FileUtilities;
 
 @ZhiMing(debug = true)
 public class Window implements WindowInterface {
+    private FileUtilities fileUtilities = new FileUtilities();
+
     private JFrame frame = new JFrame();
     private JMenuBar menubar = new JMenuBar();
 
@@ -26,6 +25,7 @@ public class Window implements WindowInterface {
         JMenu helpMenu = new JMenu("帮助");
 
         JMenuItem saveMenuItem = new JMenuItem("保存");
+        JMenuItem importPasswordMenuItem = new JMenuItem("导入密码 (.txt)");
         JMenuItem exitMenuItem = new JMenuItem("退出");
 
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
@@ -35,6 +35,15 @@ public class Window implements WindowInterface {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("保存");
             }
+        });
+
+        importPasswordMenuItem.setMnemonic(KeyEvent.VK_I);
+        importPasswordMenuItem.setActionCommand("导入密码");
+        importPasswordMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileUtilities.importPasswordFile();
+            } 
         });
 
         exitMenuItem.setMnemonic(KeyEvent.VK_E);
