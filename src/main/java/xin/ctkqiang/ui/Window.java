@@ -58,7 +58,6 @@ public class Window implements WindowInterface {
             } 
         });
 
-
         helpMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
