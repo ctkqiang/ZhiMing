@@ -12,7 +12,7 @@ public final class ZhiMingContext {
     
     public static boolean isDebug() {
         Boolean debug = DEBUG_CONTEXT.get();
-        return debug != null && debug;
+        return debug == null;
     }
     
     public static void clear() {
