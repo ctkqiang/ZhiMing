@@ -4,8 +4,27 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
 
+
+/**
+ * 安全警告对话框工具类
+ * 
+ * 该类提供显示网络安全法律警告对话框的功能，用于在用户执行潜在危险操作前
+ * 显示法律声明并要求用户确认。对话框内容包含：
+ * - 中华人民共和国网络安全法相关条款
+ * - 数据安全法和个人信息保护法相关规定
+ * - 刑法相关罪名及处罚
+ * - 使用工具的法律风险和责任声明
+ * 
+ * 对话框采用模态形式显示，确保用户必须明确确认理解并接受所有法律风险后才能继续操作
+ */
 public class Alert {
-    
+
+    /**
+     * 显示安全警告对话框（在事件分发线程中异步执行）
+     * 
+     * @param onContinue 用户点击继续按钮时的回调函数，接收一个字符串参数
+     * @param onCancel   用户点击取消按钮时的回调函数
+     */
     public static void showSecurityWarning(Consumer<String> onContinue, Runnable onCancel) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -14,7 +33,21 @@ public class Alert {
             }
         });
     }
-    
+
+    /**
+     * 创建一个安全警告对话框，显示网络安全法律声明并要求用户确认
+     * 
+     * 该方法创建一个模态对话框，显示详细的网络安全法律条款和警告信息，包括：
+     * - 中华人民共和国网络安全法相关条款
+     * - 数据安全法和个人信息保护法相关规定
+     * - 刑法相关罪名及处罚
+     * - 使用本工具的法律风险和责任声明
+     * 
+     * 用户必须明确确认理解并接受所有法律风险后才能继续操作
+     * 
+     * @param onContinue 用户确认继续时执行的回调函数，接受一个字符串参数
+     * @param onCancel   用户取消操作时执行的回调函数
+     */
     private static void createSecurityAlertDialog(Consumer<String> onContinue, Runnable onCancel) {
         String title = "作者声明";
         
@@ -147,6 +180,12 @@ public class Alert {
         });
         
         understandButton.addActionListener(new java.awt.event.ActionListener() {
+            /**
+             * 处理用户确认对话框的操作事件
+             * 当用户点击确认按钮时，显示法律风险确认对话框并根据用户选择执行相应操作
+             * 
+             * @param e 触发的事件对象
+             */
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 int confirm = JOptionPane.showConfirmDialog(
@@ -162,6 +201,11 @@ public class Alert {
                     if (onContinue != null) {
                         onContinue.accept(targetUrl[0]);
                     }
+                    /**
+                     * 处理取消按钮的点击事件，关闭对话框并执行取消回调
+                     * 
+                     * @param e 触发的事件对象
+                     */
                 }
             }
         });

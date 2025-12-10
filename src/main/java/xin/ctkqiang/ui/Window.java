@@ -42,7 +42,31 @@ public class Window implements WindowInterface {
         this.onInit();
     }
 
-    @ZhiMing(debug=true)
+    /**
+     * 设置并配置目标输入面板，包含URL/IP输入框和开始攻击按钮
+     * 
+     * @param frame 要添加输入面板的父框架
+     * @ZhiMing(debug=true) 表示该方法在调试模式下运行
+     * 
+     *                      功能说明：
+     *                      - 创建带有提示文本的输入框，当获得焦点时清空提示文本
+     *                      - 添加开始攻击按钮，点击后验证输入内容
+     *                      - 检查输入是否包含敏感域名(.cn/.gov.cn/.xin)
+     *                      - 如果包含敏感域名，显示安全警告对话框
+     *                      - 否则直接开始扫描
+     * 
+     *                      输入框特性：
+     *                      - 默认显示灰色提示文本"请输入目标网址或IP地址..."
+     *                      - 获得焦点时清空提示文本并变为黑色字体
+     *                      - 失去焦点时如果为空则恢复提示文本
+     *                      - 支持按Enter键触发按钮点击事件
+     * 
+     *                      面板特性：
+     *                      - 带有"目标坐标"标题边框
+     *                      - 包含输入框和按钮的布局
+     *                      - 设置工具提示文本"请输入要攻击的网址或IP"
+     */
+    @ZhiMing(debug = true)
     private void setTextField(JFrame frame) {
         JButton actionButton = new JButton("开始攻击");
         JTextField urlOrIp = new JTextField(20);
@@ -53,6 +77,11 @@ public class Window implements WindowInterface {
         urlOrIp.setForeground(Color.gray);
         urlOrIp.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         urlOrIp.addFocusListener(new java.awt.event.FocusAdapter() {
+            /**
+             * 处理焦点获得事件，当输入框获得焦点且显示默认提示文本时清空内容
+             * 
+             * @param e 焦点事件对象
+             */
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 if (urlOrIp.getText().equals("请输入目标网址或IP地址...")) {
@@ -60,7 +89,12 @@ public class Window implements WindowInterface {
                     urlOrIp.setForeground(Color.BLACK);
                 }
             }
-            
+
+            /**
+             * 当输入框失去焦点时，如果内容为空则显示默认提示文本
+             * 
+             * @param e 焦点事件对象，包含焦点变化的相关信息
+             */
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (urlOrIp.getText().isEmpty()) {
@@ -70,9 +104,14 @@ public class Window implements WindowInterface {
             }
         });
         urlOrIp.addActionListener(new ActionListener() {
+            /**
+             * 处理按钮点击事件，触发指定按钮的点击动作
+             * 
+             * @param e 触发的事件对象
+             */
             @Override
             public void actionPerformed(ActionEvent e) {
-               actionButton.doClick();
+                actionButton.doClick();
             }
         });
         
@@ -87,12 +126,18 @@ public class Window implements WindowInterface {
             BorderFactory.createLineBorder(Color.lightGray, 0),
             "目标坐标",
             TitledBorder.LEADING,
-            TitledBorder.TOP,
-            new Font("微软雅黑", Font.BOLD, 14),
-            Color.gray
-        ));
+                TitledBorder.TOP,
+                new Font("微软雅黑", Font.BOLD, 14),
+                
+                Color.gray));
         
         actionButton.addActionListener(new ActionListener() {
+            /**
+             * 处理用户输入的URL或IP地址，检查是否包含敏感关键词
+             * 如果包含敏感词，显示安全警告对话框；否则直接开始扫描
+             * 
+             * @param e 触发此操作的事件对象
+            */
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = urlOrIp.getText().trim();
@@ -137,7 +182,14 @@ public class Window implements WindowInterface {
         frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
     }
 
-
+    /**
+     * 在窗口初始化时执行的操作
+     * <p>
+     * 该方法会在窗口初始化阶段被调用，用于执行窗口相关的初始化逻辑
+     * </p>
+     * 
+     * @implNote 该方法会调用父类的onInit()方法并记录初始化日志
+     */
     @Override
     public void onInit() {
         WindowInterface.super.onInit();
@@ -145,7 +197,19 @@ public class Window implements WindowInterface {
         logger.info("初始化窗口");
     }
 
-
+    /**
+     * 为指定的JFrame设置菜单栏，包含文件菜单和帮助菜单
+     * 
+     * 文件菜单包含以下功能项：
+     * - 保存：记录保存操作日志
+     * - 导入密码：从文本文件导入密码
+     * - 退出：终止应用程序
+     * 
+     * 帮助菜单包含：
+     * - Issues：在浏览器中打开项目问题页面
+     * 
+     * @param frame 要设置菜单栏的JFrame窗口
+     */
     private void setMenuBar(JFrame frame) {
         JMenu fileMenu = new JMenu("文件");
         JMenu helpMenu = new JMenu("帮助");
@@ -207,9 +271,17 @@ public class Window implements WindowInterface {
 
         frame.setJMenuBar(menubar);
     }
-    
+
+    /**
+     * 初始化并显示主窗口，设置窗口大小、标题、布局等基本属性
+     * 
+     * @param width  窗口的宽度（像素）
+     * @param height 窗口的高度（像素）
+     * @param title  窗口的标题和名称
+     * @debug 当处于调试模式时，会记录窗口尺寸日志
+     */
     @ZhiMing(debug = true)
-    public void main(int width, int height, String title) {   
+    public void main(int width, int height, String title) {
         this.setUIContext();
         
         this.frame.setSize(width, height);
@@ -234,9 +306,7 @@ public class Window implements WindowInterface {
     private void setUIContext() {
         this.setAppIcon(frame, "/assets/appicon.png");
         
-        // 设置中文字体和颜色主题
         Font chineseFont = new Font("Microsoft YaHei", Font.PLAIN, 14);
-        Font chineseFontBold = new Font("Microsoft YaHei", Font.BOLD, 14);
         
         UIManager.put("Button.background", new Color(255, 200, 230));
         UIManager.put("Button.foreground", new Color(80, 0, 40));
@@ -261,15 +331,22 @@ public class Window implements WindowInterface {
         UIManager.put("MenuItem.foreground", new Color(70, 0, 50));
         UIManager.put("MenuItem.font", chineseFont);
         
-        // 设置文本框字体
         UIManager.put("TextField.font", chineseFont);
         UIManager.put("TextArea.font", chineseFont);
     }
 
+    /**
+     * 为指定的JFrame设置应用程序图标
+     * 
+     * @param frame     要设置图标的JFrame窗口
+     * @param imagePath 图标图片的资源路径
+     * @throws Exception 如果无法加载指定路径的图标资源
+    */
     private void setAppIcon(JFrame frame, String imagePath) {
+        
         try {
             Image icon = Toolkit.getDefaultToolkit().getImage(
-                getClass().getResource(imagePath)
+                    getClass().getResource(imagePath)
             );
             frame.setIconImage(icon);
         } catch (Exception e) {
