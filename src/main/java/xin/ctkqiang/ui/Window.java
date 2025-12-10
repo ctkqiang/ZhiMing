@@ -116,15 +116,15 @@ public class Window implements WindowInterface {
     public void main(int width, int height, String title) {   
         this.setUIContext();
         
-        this.setMenuBar(this.frame);
-        this.setTextField(this.frame);
-
-        this.frame.getContentPane().setBackground(UIManager.getColor("Frame.background"));
-
         this.frame.setSize(width, height);
         this.frame.setTitle(title);
         this.frame.getContentPane().setLayout(new BorderLayout());
         this.frame.setBackground(Color.white);
+        
+        this.setMenuBar(this.frame);
+        this.setTextField(this.frame);
+
+        this.frame.getContentPane().setBackground(UIManager.getColor("Frame.background"));
         this.frame.setVisible(true);
         
     }   
