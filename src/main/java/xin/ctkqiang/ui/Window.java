@@ -51,6 +51,8 @@ public class Window implements WindowInterface {
     private boolean isUserAcceptTheCnWarning  = false;
     private boolean isAttackBtnTriggered = false;
 
+    
+
     public Window() {
         this.onInit();
     }
@@ -200,8 +202,11 @@ public class Window implements WindowInterface {
     @Override
     public void onInit() {
         WindowInterface.super.onInit();
+    }
 
-        logger.info("初始化窗口");
+    @Override
+    public void onClose() {
+        WindowInterface.super.onClose();
     }
 
     /**
@@ -224,7 +229,6 @@ public class Window implements WindowInterface {
         JMenuItem saveMenuItem = new JMenuItem("保存");
         JMenuItem importPasswordMenuItem = new JMenuItem("导入密码 (.txt)");
         JMenuItem exitMenuItem = new JMenuItem("退出");
-
         JMenuItem issueMenuItem = new JMenuItem("Issues");
 
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
@@ -232,7 +236,9 @@ public class Window implements WindowInterface {
         saveMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                logger.info("保存");
+                if (ZhiMingContext.isDebug()) {
+                    logger.info("保存");
+                }
             }
         });
 
@@ -250,8 +256,7 @@ public class Window implements WindowInterface {
         exitMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                logger.info("退出");
-                System.exit(0);
+                onClose();
             } 
         });
 
@@ -263,7 +268,9 @@ public class Window implements WindowInterface {
                         ? "cmd /c start https://github.com/ctkqiang/ZhiMing/issues" 
                         : "open https://github.com/ctkqiang/ZhiMing/issues");
                 } catch (Exception ex) {
-                    logger.error("无法打开浏览器: {}", ex.getMessage());
+                    if (ZhiMingContext.isDebug()) {
+                        logger.error("无法打开浏览器: {}", ex.getMessage());
+                    }
                 }
             }
         });
@@ -357,7 +364,7 @@ public class Window implements WindowInterface {
     private void setAppIcon(JFrame frame, String imagePath) {
         try {
             Image icon = Toolkit.getDefaultToolkit().getImage(
-                    getClass().getResource(imagePath)
+                getClass().getResource(imagePath)
             );
 
             frame.setIconImage(icon);
@@ -366,15 +373,23 @@ public class Window implements WindowInterface {
                 try {
                     Class<?> appClass = Class.forName("com.apple.eawt.Application");
                     Object app = appClass.getMethod("getApplication").invoke(null);
-                    appClass.getMethod("setDockIconImage", Image.class).invoke(app, icon);
 
+                    appClass.getMethod(
+                        "setDockIconImage", 
+                        Image.class
+                    ).invoke(app, icon);
                 } catch (Exception ignored) {
-                    logger.error("设置Dock图标失败");
+                    if (ZhiMingContext.isDebug()) {
+                        logger.error("设置Dock图标失败");
+                    }
                 }
             }
 
         } catch (Exception e) {
-            logger.error("无法加载图标: " + imagePath);
+            if(ZhiMingContext.isDebug()) {
+                logger.error("无法加载图标: " + imagePath);
+            }
+
             e.printStackTrace();
         } finally {
             if (ZhiMingContext.isDebug()) {
@@ -385,12 +400,11 @@ public class Window implements WindowInterface {
 
     private void setRadioOptionAttackMode (JFrame frame) {
         ButtonGroup group = new ButtonGroup();
-        JPanel panel = new JPanel(new GridLayout(7, 1));
+        JPanel panel = new JPanel(new GridLayout(6, 1));
 
         panel.setBorder(BorderFactory.createTitledBorder("攻击类型"));
         panel.setBackground(Color.WHITE);
         panel.setForeground(Color.BLACK);
-
         
         for (AttackType type : AttackType.values()) {
             JRadioButton btn = new JRadioButton(type.toString());
@@ -405,7 +419,24 @@ public class Window implements WindowInterface {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     attackType = type;
-                    logger.info("攻击类型：" + attackType.toString());
+
+                    if(ZhiMingContext.isDebug()) {
+                        logger.info("攻击类型：" + attackType.toString());
+                    }
+
+                    switch (attackType) {
+                        case TCP80:
+                            attack.tcpAttack("", 80);
+                            break;
+                        case FTP:
+                        case MYSQL:
+                        case SSH:
+                        case UDP:
+                        case SMTP:
+                            break;
+                        default:
+                            break;
+                    }
                 }
             });
         }
