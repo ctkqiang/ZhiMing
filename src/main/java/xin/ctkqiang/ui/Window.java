@@ -3,6 +3,7 @@ package xin.ctkqiang.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -14,19 +15,24 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
 import xin.ctkqiang.common.ZhiMingContext;
+import xin.ctkqiang.controller.Attack;
 import xin.ctkqiang.interfaces.WindowInterface;
 import xin.ctkqiang.interfaces.ZhiMing;
+import xin.ctkqiang.model.AttackType;
+import xin.ctkqiang.model.Platform;
 import xin.ctkqiang.utilities.FileUtilities;
 import xin.ctkqiang.utilities.Logger;
 
@@ -35,8 +41,15 @@ public class Window implements WindowInterface {
     private static final Logger logger = new Logger();
     private FileUtilities fileUtilities = new FileUtilities();
 
+    private Attack attack = new Attack();
+
     private JFrame frame = new JFrame();
     private JMenuBar menubar = new JMenuBar();
+
+    private AttackType attackType = AttackType.TCP80;
+
+    private boolean isUserAcceptTheCnWarning  = false;
+    private boolean isAttackBtnTriggered = false;
 
     public Window() {
         this.onInit();
@@ -48,23 +61,6 @@ public class Window implements WindowInterface {
      * @param frame 要添加输入面板的父框架
      * @ZhiMing(debug=true) 表示该方法在调试模式下运行
      * 
-     *                      功能说明：
-     *                      - 创建带有提示文本的输入框，当获得焦点时清空提示文本
-     *                      - 添加开始攻击按钮，点击后验证输入内容
-     *                      - 检查输入是否包含敏感域名(.cn/.gov.cn/.xin)
-     *                      - 如果包含敏感域名，显示安全警告对话框
-     *                      - 否则直接开始扫描
-     * 
-     *                      输入框特性：
-     *                      - 默认显示灰色提示文本"请输入目标网址或IP地址..."
-     *                      - 获得焦点时清空提示文本并变为黑色字体
-     *                      - 失去焦点时如果为空则恢复提示文本
-     *                      - 支持按Enter键触发按钮点击事件
-     * 
-     *                      面板特性：
-     *                      - 带有"目标坐标"标题边框
-     *                      - 包含输入框和按钮的布局
-     *                      - 设置工具提示文本"请输入要攻击的网址或IP"
      */
     @ZhiMing(debug = true)
     private void setTextField(JFrame frame) {
@@ -156,13 +152,22 @@ public class Window implements WindowInterface {
                 logger.info("匹配到的关键字：{}", matches);
                 logger.info("匹配到的关键字数量：{}", matches.size());
                 
-                if (!matches.isEmpty()) {
+                if (!matches.isEmpty() && !isUserAcceptTheCnWarning) {
                     Alert.showSecurityWarning(
                         new Consumer<String>() {
                             @Override
                             public void accept(String url) {
                                 logger.warn("用户已确认，开始扫描: {}", url);
-                            
+
+                                isUserAcceptTheCnWarning = true;
+                                isAttackBtnTriggered = true;
+                                
+                                attack.attack(isAttackBtnTriggered, new Runnable() {
+                                    @Override
+                                    public void run() {
+                                    
+                                    }
+                                });
                             }
                         },
                         new Runnable() {
@@ -179,6 +184,8 @@ public class Window implements WindowInterface {
             }
         });
 
+        
+        this.setRadioOptionAttackMode(frame);
         frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
     }
 
@@ -334,7 +341,11 @@ public class Window implements WindowInterface {
         
         UIManager.put("TextField.font", chineseFont);
         UIManager.put("TextArea.font", chineseFont);
-    }
+
+        if (ZhiMingContext.isDebug()) {
+            logger.info("字体与全局界面样式已设置完成");
+        }
+     }
 
     /**
      * 为指定的JFrame设置应用程序图标
@@ -344,15 +355,61 @@ public class Window implements WindowInterface {
      * @throws Exception 如果无法加载指定路径的图标资源
     */
     private void setAppIcon(JFrame frame, String imagePath) {
-        
         try {
             Image icon = Toolkit.getDefaultToolkit().getImage(
                     getClass().getResource(imagePath)
             );
+
             frame.setIconImage(icon);
+
+            if (logger.getPlatform() == Platform.UNIX) {
+                try {
+                    Class<?> appClass = Class.forName("com.apple.eawt.Application");
+                    Object app = appClass.getMethod("getApplication").invoke(null);
+                    appClass.getMethod("setDockIconImage", Image.class).invoke(app, icon);
+
+                } catch (Exception ignored) {
+                    logger.error("设置Dock图标失败");
+                }
+            }
+
         } catch (Exception e) {
-            System.err.println("无法加载图标: " + imagePath);
+            logger.error("无法加载图标: " + imagePath);
             e.printStackTrace();
+        } finally {
+            if (ZhiMingContext.isDebug()) {
+                logger.info("应用图标已加载完成，窗口初始化流程结束");
+            }
         }
+    }
+
+    private void setRadioOptionAttackMode (JFrame frame) {
+        ButtonGroup group = new ButtonGroup();
+        JPanel panel = new JPanel(new GridLayout(7, 1));
+
+        panel.setBorder(BorderFactory.createTitledBorder("攻击类型"));
+        panel.setBackground(Color.WHITE);
+        panel.setForeground(Color.BLACK);
+
+        
+        for (AttackType type : AttackType.values()) {
+            JRadioButton btn = new JRadioButton(type.toString());
+        
+            if (type == AttackType.TCP80) btn.setSelected(true);
+        
+            group.add(btn);
+            panel.add(btn);
+
+            btn.setBackground(Color.WHITE);
+            btn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    attackType = type;
+                    logger.info("攻击类型：" + attackType.toString());
+                }
+            });
+        }
+        
+        frame.add(panel, BorderLayout.WEST);
     }
 }

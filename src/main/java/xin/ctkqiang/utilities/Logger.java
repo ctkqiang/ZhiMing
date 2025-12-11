@@ -102,7 +102,9 @@ public class Logger {
     public Platform getPlatform() {
         String os = System.getProperty("os.name").toLowerCase();
 
-        if (os.contains("win")) return Platform.DOS;
+        if (os.contains("win") || os.contains("dos") || os.contains("windows") || os.contains("microsoft")) {
+            return Platform.DOS;
+        }
 
         return Platform.UNIX;
     } 
