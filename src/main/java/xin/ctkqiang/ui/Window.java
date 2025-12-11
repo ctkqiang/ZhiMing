@@ -2,6 +2,8 @@ package xin.ctkqiang.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
@@ -9,6 +11,8 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -17,12 +21,15 @@ import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
@@ -32,8 +39,9 @@ import xin.ctkqiang.controller.Attack;
 import xin.ctkqiang.interfaces.WindowInterface;
 import xin.ctkqiang.interfaces.ZhiMing;
 import xin.ctkqiang.model.AttackType;
-import xin.ctkqiang.model.Platform;
+import xin.ctkqiang.model.HttpRequestMethod;
 import xin.ctkqiang.model.NetworkData;
+import xin.ctkqiang.model.Platform;
 import xin.ctkqiang.utilities.FileUtilities;
 import xin.ctkqiang.utilities.Logger;
 
@@ -46,6 +54,7 @@ public class Window implements WindowInterface {
 
     private JFrame frame = new JFrame();
     private JMenuBar menubar = new JMenuBar();
+    private JTextArea console = new JTextArea();
 
     private AttackType attackType = AttackType.TCP80;
 
@@ -71,10 +80,10 @@ public class Window implements WindowInterface {
         JTextField urlOrIp = new JTextField(20);
         JPanel inputPanel = new JPanel(new BorderLayout(20, 0));
 
-        urlOrIp.setPreferredSize(new java.awt.Dimension(300, 30));
+        urlOrIp.setPreferredSize(new Dimension(300, 10));
         urlOrIp.setText("请输入目标网址或IP地址...");
         urlOrIp.setForeground(Color.gray);
-        urlOrIp.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
+        urlOrIp.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
         urlOrIp.addFocusListener(new java.awt.event.FocusAdapter() {
             /**
              * 处理焦点获得事件，当输入框获得焦点且显示默认提示文本时清空内容
@@ -118,6 +127,7 @@ public class Window implements WindowInterface {
         inputPanel.setBackground(UIManager.getColor("Panel.background"));
         inputPanel.add(urlOrIp, BorderLayout.CENTER);
         inputPanel.add(actionButton, BorderLayout.EAST);
+        inputPanel.setOpaque(false);
         inputPanel.setToolTipText("请输入要攻击的网址或IP");
         inputPanel.setName("inputPanel");
 
@@ -125,11 +135,11 @@ public class Window implements WindowInterface {
             BorderFactory.createLineBorder(Color.lightGray, 0),
             "目标坐标",
             TitledBorder.LEADING,
-                TitledBorder.TOP,
-                new Font("微软雅黑", Font.BOLD, 14),
-                
-                Color.gray));
+            TitledBorder.TOP,
+            new Font("微软雅黑", Font.BOLD, 12), Color.gray)
+        );
         
+        actionButton.setPreferredSize(new Dimension(100, 30));
         actionButton.addActionListener(new ActionListener() {
             /**
              * 处理用户输入的URL或IP地址，检查是否包含敏感关键词
@@ -172,7 +182,7 @@ public class Window implements WindowInterface {
                                     public void run() {
                                         attack.launch(attackType, networkData);
                                     }
-                                });
+                                }, networkData);
                             }
                         },
                         new Runnable() {
@@ -194,14 +204,17 @@ public class Window implements WindowInterface {
                         public void run() {   
                             attack.launch(attackType, networkData);
                         }
-                    });
+                    }, networkData);
                 }
             }
         });
-
         
         this.setRadioOptionAttackMode(frame);
+        
         frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
+        
+        this.setDropDownMenu(inputPanel);
+
     }
 
     /**
@@ -300,6 +313,13 @@ public class Window implements WindowInterface {
         frame.setJMenuBar(menubar);
     }
 
+    private void setConsole(JFrame frame) {
+        JScrollPane scrollPane = new JScrollPane(console);
+        
+        scrollPane.setPreferredSize(new Dimension(frame.getWidth()-20, 150));
+        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+    }
+
     /**
      * 初始化并显示主窗口，设置窗口大小、标题、布局等基本属性
      * 
@@ -318,6 +338,7 @@ public class Window implements WindowInterface {
         
         this.setMenuBar(this.frame);
         this.setTextField(this.frame);
+        this.setConsole(frame);
 
         this.frame.getContentPane().setBackground(UIManager.getColor("Frame.background"));
         this.frame.setVisible(true);
@@ -329,7 +350,25 @@ public class Window implements WindowInterface {
         if (ZhiMingContext.isDebug()) {
             logger.debug("窗口宽度: %s 窗口高度: %s", frame.getWidth(), frame.getHeight());
         }
-    }   
+
+        UILogBridge.bind(this::showDebugMessageToUI);
+
+        PrintStream ps = new PrintStream(new OutputStream() {
+            private StringBuilder buffer = new StringBuilder();
+            @Override
+            public void write(int b) {
+                if (b == '\n') {
+                    UILogBridge.log(buffer.toString());
+                    buffer.setLength(0);
+                } else {
+                    buffer.append((char) b);
+                }
+            }
+        }, true);
+
+        System.setOut(ps);
+        System.setErr(ps);
+    }
 
     private void setUIContext() {
         this.setAppIcon(frame, "/assets/appicon.png");
@@ -436,27 +475,6 @@ public class Window implements WindowInterface {
                     if (ZhiMingContext.isDebug()) {
                         logger.info("攻击类型：" + attackType.toString());
                     }
-                    
-                    switch (attackType) {
-                        case TCP80:
-                            networkData.setPort(80);
-                            break;
-                        case UDP:
-                            networkData.setPort(53);
-                            break;
-                        case FTP:
-                            networkData.setPort(21);
-                            break;
-                        case MYSQL:
-                            networkData.setPort(3306);
-                            break;
-                        case SSH:
-                            networkData.setPort(22);
-                            break;
-                        case SMTP:
-                            networkData.setPort(25);
-                            break;
-                    }
 
                     attack.launch(attackType, networkData);
                 }
@@ -465,4 +483,44 @@ public class Window implements WindowInterface {
         
         frame.add(panel, BorderLayout.WEST);
     }
+
+    private void setDropDownMenu(JPanel inputPanel) {
+        JComboBox<HttpRequestMethod> methodDropdown = new JComboBox<>(HttpRequestMethod.values());
+        JPanel rightContainer = new JPanel();
+        rightContainer.setOpaque(false);
+        rightContainer.add(methodDropdown);
+
+        Component oldEast = inputPanel.getComponent(1);
+
+        methodDropdown.setPreferredSize(new Dimension(100, 30));
+        methodDropdown.setBackground(Color.WHITE);
+        methodDropdown.setForeground(Color.BLACK);
+        methodDropdown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                HttpRequestMethod selectedMethod = (HttpRequestMethod) methodDropdown.getSelectedItem();
+                networkData.setRequestMethod(selectedMethod);
+
+                if (ZhiMingContext.isDebug()) {
+                    logger.info("已选择HTTP请求方法: " + selectedMethod.getValue());
+                }
+
+                networkData.setRequestMethod(selectedMethod);
+            }
+        });
+
+        oldEast.setBackground(Color.WHITE);
+
+        rightContainer.add(oldEast);
+        rightContainer.setBackground(Color.WHITE);
+        inputPanel.add(rightContainer, BorderLayout.EAST);
+    }
+
+    
+    private void showDebugMessageToUI(String message) {
+        console.append(message + "\n");
+        console.setCaretPosition(console.getDocument().getLength());
+    }
+
+
 }

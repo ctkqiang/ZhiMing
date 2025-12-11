@@ -1,20 +1,22 @@
 package xin.ctkqiang.interfaces;
 
+import java.util.IllegalFormatException;
+
+import xin.ctkqiang.model.HttpRequestMethod;
+import xin.ctkqiang.model.NetworkData;
 import xin.ctkqiang.utilities.Logger;
 
 public interface AttackInterface {
     public Logger logger = new Logger();
 
-    public default void attack(boolean isTriggered, Runnable  runnable) {
-        try {
-            isTriggered = true;
-            logger.info("开始攻击");
-            runnable.run();
-        } catch (Exception e) {
-            logger.error("攻击失败: {}", e);
-        } finally {
-            onStop(isTriggered);
-        }
+    public default void attack(boolean isTriggered, Runnable runnable, NetworkData networkData) {
+        isTriggered = true;
+        logger.info("开始攻击");
+
+        networkData.setPort(0);
+        networkData.setRequestMethod(HttpRequestMethod.GET);
+
+        runnable.run();
     }
 
     public default void onStop(boolean  isTriggered) {

@@ -10,6 +10,7 @@ package xin.ctkqiang.utilities;
 
 import xin.ctkqiang.constant.ConstantsString;
 import xin.ctkqiang.model.Platform;
+import xin.ctkqiang.ui.UILogBridge;
 
 /**
  * 日志级别与平台检测工具。
@@ -48,7 +49,9 @@ public class Logger {
      * @param args    模板参数
      */
     public void info(String message, Object... args) {
-        System.out.printf(GREEN + "（%s）【信息】：%s%n" + RESET, appName, String.format(message, args));
+        String log = String.format(GREEN + "（%s）【信息】：%s%n" + RESET, appName, String.format(message, args));
+        System.out.print(log);
+        UILogBridge.log(log);
     }
 
     /**
@@ -58,7 +61,9 @@ public class Logger {
      * @param args    模板参数
      */
     public void error(String message, Object... args) {
-        System.err.printf(RED + "（%s）【错误】：%s%n" + RESET, appName, String.format(message, args));
+        String log = String.format(RED + "（%s）【错误】：%s%n" + RESET, appName, String.format(message, args));
+        System.err.print(log);
+        UILogBridge.log(log);
     }
 
     /**
@@ -68,7 +73,9 @@ public class Logger {
      * @param args    模板参数
      */
     public void warn(String message, Object... args) {
-        System.out.printf(YELLOW + "（%s）【警告】：%s%n" + RESET, appName, String.format(message, args));
+        String log = String.format(YELLOW + "（%s）【警告】：%s%n" + RESET, appName, String.format(message, args));
+        System.out.print(log);
+        UILogBridge.log(log);
     }
 
     /**
@@ -78,7 +85,9 @@ public class Logger {
      * @param args    模板参数
      */
     public void verbose(String message, Object... args) {
-        System.out.printf(BLUE + "（%s）【详细】：%s%n" + RESET, appName, String.format(message, args));
+        String log = String.format(BLUE + "（%s）【详细】：%s%n" + RESET, appName, String.format(message, args));
+        System.out.print(log);
+        UILogBridge.log(log);
     }
 
     /**
@@ -88,7 +97,9 @@ public class Logger {
      * @param args    模板参数
      */
     public void debug(String message, Object... args) {
-        System.out.printf(PURPLE + "（%s）【调试】：%s%n" + RESET, appName, String.format(message, args));
+        String log = String.format(PURPLE + "（%s）【调试】：%s%n" + RESET, appName, String.format(message, args));
+        System.out.print(log);
+        UILogBridge.log(log);
     }
 
     /**

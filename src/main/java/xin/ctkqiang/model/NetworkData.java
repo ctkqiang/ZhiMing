@@ -8,6 +8,7 @@ public class NetworkData {
     private String param;
     private Map<String, Object> headers;
     private Map<String, Object> body;
+    private HttpRequestMethod method;
 
     public NetworkData() {  }
 
@@ -16,12 +17,13 @@ public class NetworkData {
         this.port = 80;
     }
 
-    public NetworkData(String host, int port, String param, Map<String, Object> headers, Map<String, Object> body) {
+    public NetworkData(String host, int port, String param, Map<String, Object> headers, Map<String, Object> body, HttpRequestMethod method) {
         this.host = host;
         this.port = port <= 0 ? 80 : port;
         this.param = param;
         this.headers = headers == null ? defaultHeaders() : headers;
         this.body = body;
+        this.method = method == null ? HttpRequestMethod.GET : method;
     }
 
     public String getHost() {
@@ -44,6 +46,10 @@ public class NetworkData {
         return param;
     }
 
+    public String getRequestMethod() {
+        return method.getValue().toString().toUpperCase();
+    }
+
     public void setParam(String param) {
         this.param = param;
     }
@@ -62,6 +68,10 @@ public class NetworkData {
 
     public void setBody(Map<String, Object> body) {
         this.body = body;
+    }
+
+    public void setRequestMethod(HttpRequestMethod method) {
+        this.method = method;
     }
     
     /**
