@@ -436,8 +436,27 @@ public class Window implements WindowInterface {
                     if (ZhiMingContext.isDebug()) {
                         logger.info("攻击类型：" + attackType.toString());
                     }
-
-                    if (attackType == AttackType.TCP80) networkData.setPort(80);
+                    
+                    switch (attackType) {
+                        case TCP80:
+                            networkData.setPort(80);
+                            break;
+                        case UDP:
+                            networkData.setPort(53);
+                            break;
+                        case FTP:
+                            networkData.setPort(21);
+                            break;
+                        case MYSQL:
+                            networkData.setPort(3306);
+                            break;
+                        case SSH:
+                            networkData.setPort(22);
+                            break;
+                        case SMTP:
+                            networkData.setPort(25);
+                            break;
+                    }
 
                     attack.launch(attackType, networkData);
                 }

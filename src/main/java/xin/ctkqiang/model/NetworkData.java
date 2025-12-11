@@ -105,7 +105,7 @@ public class NetworkData {
 
     @Override
     public String toString() {
-        return "TCP80 [host=" + host + ", port=" + port + ", param=" + param + ", headers=" + headers + ", body=" + body
+        return "NETWORK_DATA [host=" + host + ", port=" + port + ", param=" + param + ", headers=" + headers + ", body=" + body
                 + ", defaultHeaders()=" + defaultHeaders() + ", getClass()=" + getClass() + ", hashCode()=" + hashCode()
                 + ", toString()=" + super.toString() + "]";
     }
