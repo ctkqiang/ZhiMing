@@ -33,6 +33,7 @@ import xin.ctkqiang.interfaces.WindowInterface;
 import xin.ctkqiang.interfaces.ZhiMing;
 import xin.ctkqiang.model.AttackType;
 import xin.ctkqiang.model.Platform;
+import xin.ctkqiang.model.NetworkData;
 import xin.ctkqiang.utilities.FileUtilities;
 import xin.ctkqiang.utilities.Logger;
 
@@ -51,7 +52,7 @@ public class Window implements WindowInterface {
     private boolean isUserAcceptTheCnWarning  = false;
     private boolean isAttackBtnTriggered = false;
 
-    
+    private NetworkData networkData = new NetworkData();
 
     public Window() {
         this.onInit();
@@ -163,11 +164,13 @@ public class Window implements WindowInterface {
 
                                 isUserAcceptTheCnWarning = true;
                                 isAttackBtnTriggered = true;
+
+                                networkData.setHost(text);
                                 
                                 attack.attack(isAttackBtnTriggered, new Runnable() {
                                     @Override
                                     public void run() {
-                                    
+                                        attack.launch(attackType, networkData);
                                     }
                                 });
                             }
@@ -181,7 +184,17 @@ public class Window implements WindowInterface {
                         }
                     );
                 } else {
-                    logger.info("无匹配关键字，直接开始扫描");
+                    if (ZhiMingContext.isDebug()) {
+                        logger.info("无匹配关键字，直接开始扫描");
+                    }
+
+                    networkData.setHost(text);
+                    attack.attack(isAttackBtnTriggered, new Runnable() {
+                        @Override
+                        public void run() {   
+                            attack.launch(attackType, networkData);
+                        }
+                    });
                 }
             }
         });
@@ -420,23 +433,13 @@ public class Window implements WindowInterface {
                 public void actionPerformed(ActionEvent e) {
                     attackType = type;
 
-                    if(ZhiMingContext.isDebug()) {
+                    if (ZhiMingContext.isDebug()) {
                         logger.info("攻击类型：" + attackType.toString());
                     }
 
-                    switch (attackType) {
-                        case TCP80:
-                            attack.tcpAttack("", 80);
-                            break;
-                        case FTP:
-                        case MYSQL:
-                        case SSH:
-                        case UDP:
-                        case SMTP:
-                            break;
-                        default:
-                            break;
-                    }
+                    if (attackType == AttackType.TCP80) networkData.setPort(80);
+
+                    attack.launch(attackType, networkData);
                 }
             });
         }

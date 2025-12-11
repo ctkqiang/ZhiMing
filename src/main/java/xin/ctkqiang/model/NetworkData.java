@@ -2,21 +2,21 @@ package xin.ctkqiang.model;
 
 import java.util.Map;
 
-public class TCP80 {
+public class NetworkData {
     private String host;
     private int port;
     private String param;
     private Map<String, Object> headers;
     private Map<String, Object> body;
 
-    public TCP80() {  }
+    public NetworkData() {  }
 
-    public TCP80(String host) {
+    public NetworkData(String host) {
         this.host = host;
         this.port = 80;
     }
 
-    public TCP80(String host, int port, String param, Map<String, Object> headers, Map<String, Object> body) {
+    public NetworkData(String host, int port, String param, Map<String, Object> headers, Map<String, Object> body) {
         this.host = host;
         this.port = port <= 0 ? 80 : port;
         this.param = param;
