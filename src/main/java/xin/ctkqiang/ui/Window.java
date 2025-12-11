@@ -11,6 +11,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -314,7 +315,14 @@ public class Window implements WindowInterface {
     }
 
     private void setConsole(JFrame frame) {
-        JScrollPane scrollPane = new JScrollPane(console);
+        JScrollPane scrollPane = new JScrollPane(
+            console, 
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+
+        console.setLineWrap(true); 
+        console.setWrapStyleWord(true); 
         
         scrollPane.setPreferredSize(new Dimension(frame.getWidth()-20, 150));
         frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
@@ -353,21 +361,32 @@ public class Window implements WindowInterface {
 
         UILogBridge.bind(this::showDebugMessageToUI);
 
-        PrintStream ps = new PrintStream(new OutputStream() {
-            private StringBuilder buffer = new StringBuilder();
-            @Override
-            public void write(int b) {
-                if (b == '\n') {
-                    UILogBridge.log(buffer.toString());
-                    buffer.setLength(0);
-                } else {
-                    buffer.append((char) b);
-                }
-            }
-        }, true);
+        PrintStream ps;
+        try {
+            ps = new PrintStream(new OutputStream() {
+                private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        System.setOut(ps);
-        System.setErr(ps);
+                @Override
+                public void write(int b) {
+                    if (b == '\n') {
+                        try {
+                            String line = buffer.toString("UTF-8");
+                            UILogBridge.log(line);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        buffer.reset();
+                    } else {
+                        buffer.write(b);
+                    }
+                }
+            }, true, "UTF-8");
+
+            System.setOut(ps);
+            System.setErr(ps);
+        } catch (Exception e) {
+            logger.error("无法设置日志输出编码: {}", e.getMessage());
+        }
     }
 
     private void setUIContext() {
@@ -520,7 +539,8 @@ public class Window implements WindowInterface {
     private void showDebugMessageToUI(String message) {
         console.append(message + "\n");
         console.setCaretPosition(console.getDocument().getLength());
+        console.setForeground(Color.GREEN);
+        console.setFont(new Font("Microsoft YaHei", Font.BOLD, 14));
+        console.setBackground(Color.BLACK);
     }
-
-
 }
