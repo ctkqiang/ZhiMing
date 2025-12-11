@@ -49,9 +49,16 @@ public class Logger {
      * @param args    模板参数
      */
     public void info(String message, Object... args) {
-        String log = String.format(GREEN + "（%s）【信息】：%s%n" + RESET, appName, String.format(message, args));
-        System.out.print(log);
-        UILogBridge.log(log);
+        try {
+            String formattedMessage = args.length > 0 ? String.format(message, args) : message;
+            String log = String.format(GREEN + "（%s）【信息】：%s%n" + RESET, appName, formattedMessage);
+            System.out.print(log);
+            UILogBridge.log(log);
+        } catch (Exception e) {
+            String log = String.format(GREEN + "（%s）【信息】：%s%n" + RESET, appName, message);
+            System.out.print(log);
+            UILogBridge.log(log);
+        }
     }
 
     /**
@@ -61,9 +68,16 @@ public class Logger {
      * @param args    模板参数
      */
     public void error(String message, Object... args) {
-        String log = String.format(RED + "（%s）【错误】：%s%n" + RESET, appName, String.format(message, args));
-        System.err.print(log);
-        UILogBridge.log(log);
+        try {
+            String formattedMessage = args.length > 0 ? String.format(message, args) : message;
+            String log = String.format(RED + "（%s）【错误】：%s%n" + RESET, appName, formattedMessage);
+            System.err.print(log);
+            UILogBridge.log(log);
+        } catch (Exception e) {
+            String log = String.format(RED + "（%s）【错误】：%s%n" + RESET, appName, message);
+            System.err.print(log);
+            UILogBridge.log(log);
+        }
     }
 
     /**
@@ -73,9 +87,16 @@ public class Logger {
      * @param args    模板参数
      */
     public void warn(String message, Object... args) {
-        String log = String.format(YELLOW + "（%s）【警告】：%s%n" + RESET, appName, String.format(message, args));
-        System.out.print(log);
-        UILogBridge.log(log);
+        try {
+            String formattedMessage = args.length > 0 ? String.format(message, args) : message;
+            String log = String.format(YELLOW + "（%s）【警告】：%s%n" + RESET, appName, formattedMessage);
+            System.out.print(log);
+            UILogBridge.log(log);
+        } catch (Exception e) {
+            String log = String.format(YELLOW + "（%s）【警告】：%s%n" + RESET, appName, message);
+            System.out.print(log);
+            UILogBridge.log(log);
+        }
     }
 
     /**
@@ -85,9 +106,16 @@ public class Logger {
      * @param args    模板参数
      */
     public void verbose(String message, Object... args) {
-        String log = String.format(BLUE + "（%s）【详细】：%s%n" + RESET, appName, String.format(message, args));
-        System.out.print(log);
-        UILogBridge.log(log);
+        try {
+            String formattedMessage = args.length > 0 ? String.format(message, args) : message;
+            String log = String.format(BLUE + "（%s）【详细】：%s%n" + RESET, appName, formattedMessage);
+            System.out.print(log);
+            UILogBridge.log(log);
+        } catch (Exception e) {
+            String log = String.format(BLUE + "（%s）【详细】：%s%n" + RESET, appName, message);
+            System.out.print(log);
+            UILogBridge.log(log);
+        }
     }
 
     /**
@@ -97,9 +125,17 @@ public class Logger {
      * @param args    模板参数
      */
     public void debug(String message, Object... args) {
-        String log = String.format(PURPLE + "（%s）【调试】：%s%n" + RESET, appName, String.format(message, args));
-        System.out.print(log);
-        UILogBridge.log(log);
+        try {
+            String formattedMessage = args.length > 0 ? String.format(message, args) : message;
+            String log = String.format(PURPLE + "（%s）【调试】：%s%n" + RESET, appName, formattedMessage);
+            System.out.print(log);
+            UILogBridge.log(log);
+        } catch (Exception e) {
+            // 如果格式化失败，直接输出原始消息
+            String log = String.format(PURPLE + "（%s）【调试】：%s%n" + RESET, appName, message);
+            System.out.print(log);
+            UILogBridge.log(log);
+        }
     }
 
     /**

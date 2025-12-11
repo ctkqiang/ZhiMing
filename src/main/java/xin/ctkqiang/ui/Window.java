@@ -14,9 +14,11 @@ import java.awt.event.KeyEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -32,6 +34,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
@@ -48,8 +51,11 @@ import xin.ctkqiang.utilities.Logger;
 
 @ZhiMing(debug = true)
 public class Window implements WindowInterface {
+    private static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[[;\\d]*m");
+
     private static final Logger logger = new Logger();
     private FileUtilities fileUtilities = new FileUtilities();
+    
 
     private Attack attack = new Attack();
 
@@ -315,6 +321,8 @@ public class Window implements WindowInterface {
     }
 
     private void setConsole(JFrame frame) {
+        console.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14)); 
+
         JScrollPane scrollPane = new JScrollPane(
             console, 
             JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -361,31 +369,43 @@ public class Window implements WindowInterface {
 
         UILogBridge.bind(this::showDebugMessageToUI);
 
-        PrintStream ps;
         try {
-            ps = new PrintStream(new OutputStream() {
-                private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(new OutputStream() {
+                private final ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 
                 @Override
                 public void write(int b) {
                     if (b == '\n') {
-                        try {
-                            String line = buffer.toString("UTF-8");
-                            UILogBridge.log(line);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
+                        byte[] bytes = byteBuffer.toByteArray();
+                        byteBuffer.reset();
+
+                        String line = new String(bytes, StandardCharsets.UTF_8);
+
+                        if (line.endsWith("\r")) {
+                            line = line.substring(0, line.length() - 1);
                         }
-                        buffer.reset();
+
+                        line = stripANSI(line);
+
+                        final String safeLine = line;
+                        
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                UILogBridge.log(safeLine);
+                            }
+                        });
+
                     } else {
-                        buffer.write(b);
+                        byteBuffer.write(b);
                     }
                 }
-            }, true, "UTF-8");
+            }, true, StandardCharsets.UTF_8.name());
 
             System.setOut(ps);
             System.setErr(ps);
         } catch (Exception e) {
-            logger.error("无法设置日志输出编码: {}", e.getMessage());
+            logger.error("无法设置日志输出编码 {}", e.getMessage());
         }
     }
 
@@ -457,7 +477,7 @@ public class Window implements WindowInterface {
             }
 
         } catch (Exception e) {
-            if(ZhiMingContext.isDebug()) {
+            if (ZhiMingContext.isDebug()) {
                 logger.error("无法加载图标: " + imagePath);
             }
 
@@ -539,8 +559,11 @@ public class Window implements WindowInterface {
     private void showDebugMessageToUI(String message) {
         console.append(message + "\n");
         console.setCaretPosition(console.getDocument().getLength());
-        console.setForeground(Color.GREEN);
-        console.setFont(new Font("Microsoft YaHei", Font.BOLD, 14));
-        console.setBackground(Color.BLACK);
+        console.setForeground(Color.BLACK);
+        console.setBackground(Color.WHITE);
+    }
+
+    private String stripANSI(String text) {
+        return ANSI_PATTERN.matcher(text).replaceAll("");
     }
 }
