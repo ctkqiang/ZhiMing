@@ -88,7 +88,7 @@ public class Attack implements AttackInterface {
             conn.setRequestMethod(method);
             conn.setRequestProperty("User-Agent", "Mozilla/5.0");
             conn.setRequestProperty("Accept", "*/*");
-            conn.setRequestProperty("Accept-Charset", "UTF-8"); // 👈 明确告诉服务器我们接受UTF-8
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
 
             int responseCode = conn.getResponseCode();
 

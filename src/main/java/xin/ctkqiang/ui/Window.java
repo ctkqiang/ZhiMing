@@ -93,17 +93,16 @@ public class Window implements WindowInterface {
         JTextField urlOrIp = new JTextField(20);
         JPanel inputPanel = new JPanel(new BorderLayout(20, 0));
 
-     
         JPanel bodyPanel = new JPanel(new BorderLayout());
         bodyPanel.setBorder(BorderFactory.createTitledBorder("请求体"));
         
         JTextArea requestBody = new JTextArea(3, 20);
         requestBody.setLineWrap(true);
         requestBody.setWrapStyleWord(true);
+        
         JScrollPane bodyScroll = new JScrollPane(requestBody);
         bodyScroll.setPreferredSize(new Dimension(400, 80));
 
-       
         JButton insertCustomBtn = new JButton("插入默认密码列表");
         insertCustomBtn.setToolTipText("点击插入默认密码列表变量 $default_password_list$");
         insertCustomBtn.addActionListener(new ActionListener() {
@@ -115,7 +114,7 @@ public class Window implements WindowInterface {
             }
         });
 
-        // 清空按钮
+
         JButton clearBtn = new JButton("清空");
         clearBtn.addActionListener(new ActionListener() {
             @Override
@@ -124,7 +123,6 @@ public class Window implements WindowInterface {
             }
         });
 
-        // 示例按钮
         JButton exampleBtn = new JButton("示例");
         exampleBtn.addActionListener(new ActionListener() {
             @Override
@@ -139,23 +137,28 @@ public class Window implements WindowInterface {
 
         bodyPanel.add(iconPanel, BorderLayout.NORTH);
         bodyPanel.add(bodyScroll, BorderLayout.CENTER);
-
-        // 请求头区域（底部）
+      
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createTitledBorder("请求头"));
+        
         JTextArea requestHeader = new JTextArea(2, 20);
         requestHeader.setLineWrap(true);
         requestHeader.setWrapStyleWord(true);
+        
+        requestHeader.setText(
+            "User-Agent: Mozilla/5.0\n" +
+            "Accept: */*\n" +
+            "Accept-Charset: UTF-8"
+        );
+        
         JScrollPane headerScroll = new JScrollPane(requestHeader);
         headerScroll.setPreferredSize(new Dimension(400, 60));
         headerPanel.add(headerScroll, BorderLayout.CENTER);
 
-        // 底部主面板
         JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
         bottomPanel.add(bodyPanel, BorderLayout.CENTER);
         bottomPanel.add(headerPanel, BorderLayout.SOUTH);
 
-        // 顶部输入区域（保持不变）
         urlOrIp.setPreferredSize(new Dimension(300, 30));
         urlOrIp.setText("请输入目标网址或IP地址...");
         urlOrIp.setForeground(Color.gray);
@@ -409,12 +412,15 @@ public class Window implements WindowInterface {
         
         this.setMenuBar(this.frame);
         this.setTextField(this.frame);
-        this.setConsole(frame);
 
+        this.setConsole(frame);
+        frame.setLocationRelativeTo(null);
+        this.frame.setResizable(false);
         this.frame.getContentPane().setBackground(UIManager.getColor("Frame.background"));
         this.frame.setVisible(true);
         this.frame.setTitle(title);
         this.frame.setName(title);
+        this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.getContentPane().setLayout(new BorderLayout());
         this.frame.setBackground(Color.white);
 
@@ -469,14 +475,14 @@ public class Window implements WindowInterface {
         
         Font chineseFont = new Font("Microsoft YaHei", Font.PLAIN, 14);
         
-        UIManager.put("Button.background", new Color(255, 200, 230));
-        UIManager.put("Button.foreground", new Color(80, 0, 40));
+        UIManager.put("Button.background", Color.WHITE);
+        UIManager.put("Button.foreground", Color.BLACK);
         UIManager.put("Button.font", chineseFont);
         
         UIManager.put("Label.font", chineseFont);
         UIManager.put("TextField.font", chineseFont);
         
-        UIManager.put("Panel.background", new Color(245, 245, 250));
+        UIManager.put("Panel.background", Color.WHITE);
         UIManager.put("Frame.background", Color.white);
         
         UIManager.put("MenuBar.background", Color.white);
