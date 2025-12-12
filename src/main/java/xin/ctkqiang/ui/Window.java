@@ -12,9 +12,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +35,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -94,7 +99,7 @@ public class Window implements WindowInterface {
         JPanel inputPanel = new JPanel(new BorderLayout(20, 0));
 
         JPanel bodyPanel = new JPanel(new BorderLayout());
-        bodyPanel.setBorder(BorderFactory.createTitledBorder("请求体"));
+        bodyPanel.setBorder(BorderFactory.createTitledBorder("请求体(数据)"));
         
         JTextArea requestBody = new JTextArea(3, 20);
         requestBody.setLineWrap(true);
@@ -315,6 +320,48 @@ public class Window implements WindowInterface {
         JMenu helpMenu = new JMenu("帮助");
 
         JMenuItem saveMenuItem = new JMenuItem("保存");
+        JMenuItem showPasswordListMenuItem = new JMenuItem("查看密码列表");
+        showPasswordListMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Path path = Paths.get(fileUtilities.PASSWORD_FILE_PATH);
+
+                    if (Files.exists(path)) {
+                        String content = new String(Files.readAllBytes(path), java.nio.charset.StandardCharsets.UTF_8);
+                        JTextArea textArea = new JTextArea(content);
+                        textArea.setEditable(false);
+                        textArea.setLineWrap(true);
+                        textArea.setWrapStyleWord(true);
+                        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                        
+                        JScrollPane scrollPane = new JScrollPane(textArea);
+                        scrollPane.setPreferredSize(new Dimension(400, 300));
+                        
+                        JOptionPane.showMessageDialog(
+                            null,
+                            scrollPane,
+                            "本地密码列表",
+                            JOptionPane.INFORMATION_MESSAGE
+                        );
+                    } else {
+                        javax.swing.JOptionPane.showMessageDialog(
+                            null,
+                            "本地密码文件不存在，请先导入",
+                            "提示",
+                            javax.swing.JOptionPane.WARNING_MESSAGE
+                        );
+                    }
+                } catch (IOException ex) {
+                    javax.swing.JOptionPane.showMessageDialog(
+                        null,
+                        "读取文件失败：" + ex.getMessage(),
+                        "错误",
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        });
         JMenuItem importPasswordMenuItem = new JMenuItem("导入密码 (.txt)");
         JMenuItem exitMenuItem = new JMenuItem("退出");
         JMenuItem issueMenuItem = new JMenuItem("Issues");
@@ -327,6 +374,19 @@ public class Window implements WindowInterface {
                 if (ZhiMingContext.isDebug()) {
                     logger.info("保存");
                 }
+            }
+        });
+
+        showPasswordListMenuItem.setMnemonic(KeyEvent.VK_X);
+        showPasswordListMenuItem.setActionCommand("显示密码列表");
+        showPasswordListMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (ZhiMingContext.isDebug()) {
+                    logger.info("显示密码列表");
+                }
+
+
             }
         });
 
@@ -363,12 +423,16 @@ public class Window implements WindowInterface {
             }
         });
 
+        fileMenu.setBackground(Color.WHITE);
+        helpMenu.setBackground(Color.WHITE);
+
         this.menubar.add(fileMenu);
         this.menubar.add(helpMenu);
 
         helpMenu.add(issueMenuItem);
 
         fileMenu.add(saveMenuItem);
+        fileMenu.add(showPasswordListMenuItem);
         fileMenu.add(importPasswordMenuItem);
         fileMenu.add(exitMenuItem);
 
@@ -483,19 +547,20 @@ public class Window implements WindowInterface {
         UIManager.put("TextField.font", chineseFont);
         
         UIManager.put("Panel.background", Color.WHITE);
-        UIManager.put("Frame.background", Color.white);
+        UIManager.put("Frame.background", Color.WHITE);
         
-        UIManager.put("MenuBar.background", Color.white);
-        UIManager.put("MenuBar.foreground", Color.black);
+        UIManager.put("MenuBar.background", Color.WHITE);
+        UIManager.put("MenuBar.foreground", Color.BLACK);
         UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        UIManager.put("MenuBar.border", Color.BLUE);
         UIManager.put("MenuBar.font", chineseFont);
         
         UIManager.put("Menu.background", Color.WHITE);
         UIManager.put("Menu.foreground", Color.BLACK);
         UIManager.put("Menu.font", chineseFont);
         
-        UIManager.put("MenuItem.background", new Color(255, 230, 245));
-        UIManager.put("MenuItem.foreground", new Color(70, 0, 50));
+        UIManager.put("MenuItem.background", Color.WHITE);
+        UIManager.put("MenuItem.foreground", Color.BLACK);
         UIManager.put("MenuItem.font", chineseFont);
         
         UIManager.put("TextField.font", chineseFont);
