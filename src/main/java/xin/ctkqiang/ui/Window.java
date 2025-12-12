@@ -127,7 +127,7 @@ public class Window implements WindowInterface {
         exampleBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                requestBody.setText("{\n  \"key\": \"$value$\",\n  \"data\": \"test\"\n}");
+                requestBody.setText("{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}");
             }
         });
 

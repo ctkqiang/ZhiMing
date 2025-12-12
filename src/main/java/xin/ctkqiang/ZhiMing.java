@@ -14,6 +14,6 @@ public class ZhiMing {
      * @param args 命令行参数
      */
     public static void main(String[] args) {
-        ZhiMing.window.main(1200, 600, ZhiMing.appName);
+        ZhiMing.window.main(1600, 800, ZhiMing.appName);
     }
 }
