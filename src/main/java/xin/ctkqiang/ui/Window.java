@@ -490,8 +490,8 @@ public class Window implements WindowInterface {
         UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(5, 5, 5, 5));
         UIManager.put("MenuBar.font", chineseFont);
         
-        UIManager.put("Menu.background", new Color(255, 220, 240));
-        UIManager.put("Menu.foreground", new Color(70, 0, 50));
+        UIManager.put("Menu.background", Color.WHITE);
+        UIManager.put("Menu.foreground", Color.BLACK);
         UIManager.put("Menu.font", chineseFont);
         
         UIManager.put("MenuItem.background", new Color(255, 230, 245));
