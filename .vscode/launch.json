@@ -8,6 +8,13 @@
             "mainClass": "",
             "preLaunchTask": "mvn exec ZhiMing",
             "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Debug ZhiMing via Maven",
+            "request": "launch",
+            "mainClass": "",
+            "console": "integratedTerminal"
         }
     ]
 }

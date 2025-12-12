@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -26,6 +27,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -37,6 +39,9 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
+import javax.swing.text.Highlighter;
+import javax.swing.text.Keymap;
+import javax.swing.text.Highlighter.Highlight;
 
 import xin.ctkqiang.common.ZhiMingContext;
 import xin.ctkqiang.controller.Attack;
@@ -83,20 +88,79 @@ public class Window implements WindowInterface {
      */
     @ZhiMing(debug = true)
     private void setTextField(JFrame frame) {
+        JPanel iconPanel = new JPanel();
         JButton actionButton = new JButton("开始攻击");
         JTextField urlOrIp = new JTextField(20);
         JPanel inputPanel = new JPanel(new BorderLayout(20, 0));
 
-        urlOrIp.setPreferredSize(new Dimension(300, 10));
+     
+        JPanel bodyPanel = new JPanel(new BorderLayout());
+        bodyPanel.setBorder(BorderFactory.createTitledBorder("请求体"));
+        
+        JTextArea requestBody = new JTextArea(3, 20);
+        requestBody.setLineWrap(true);
+        requestBody.setWrapStyleWord(true);
+        JScrollPane bodyScroll = new JScrollPane(requestBody);
+        bodyScroll.setPreferredSize(new Dimension(400, 80));
+
+       
+        JButton insertCustomBtn = new JButton("插入默认密码列表");
+        insertCustomBtn.setToolTipText("点击插入默认密码列表变量 $default_password_list$");
+        insertCustomBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String template = "$default_password_list$";
+                int pos = requestBody.getCaretPosition();
+                requestBody.insert(template, pos);
+            }
+        });
+
+        // 清空按钮
+        JButton clearBtn = new JButton("清空");
+        clearBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                requestBody.setText("");
+            }
+        });
+
+        // 示例按钮
+        JButton exampleBtn = new JButton("示例");
+        exampleBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                requestBody.setText("{\n  \"key\": \"$value$\",\n  \"data\": \"test\"\n}");
+            }
+        });
+
+        iconPanel.add(insertCustomBtn);
+        iconPanel.add(clearBtn);
+        iconPanel.add(exampleBtn);
+
+        bodyPanel.add(iconPanel, BorderLayout.NORTH);
+        bodyPanel.add(bodyScroll, BorderLayout.CENTER);
+
+        // 请求头区域（底部）
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBorder(BorderFactory.createTitledBorder("请求头"));
+        JTextArea requestHeader = new JTextArea(2, 20);
+        requestHeader.setLineWrap(true);
+        requestHeader.setWrapStyleWord(true);
+        JScrollPane headerScroll = new JScrollPane(requestHeader);
+        headerScroll.setPreferredSize(new Dimension(400, 60));
+        headerPanel.add(headerScroll, BorderLayout.CENTER);
+
+        // 底部主面板
+        JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
+        bottomPanel.add(bodyPanel, BorderLayout.CENTER);
+        bottomPanel.add(headerPanel, BorderLayout.SOUTH);
+
+        // 顶部输入区域（保持不变）
+        urlOrIp.setPreferredSize(new Dimension(300, 30));
         urlOrIp.setText("请输入目标网址或IP地址...");
         urlOrIp.setForeground(Color.gray);
         urlOrIp.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
         urlOrIp.addFocusListener(new java.awt.event.FocusAdapter() {
-            /**
-             * 处理焦点获得事件，当输入框获得焦点且显示默认提示文本时清空内容
-             * 
-             * @param e 焦点事件对象
-             */
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 if (urlOrIp.getText().equals("请输入目标网址或IP地址...")) {
@@ -105,11 +169,6 @@ public class Window implements WindowInterface {
                 }
             }
 
-            /**
-             * 当输入框失去焦点时，如果内容为空则显示默认提示文本
-             * 
-             * @param e 焦点事件对象，包含焦点变化的相关信息
-             */
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (urlOrIp.getText().isEmpty()) {
@@ -119,17 +178,12 @@ public class Window implements WindowInterface {
             }
         });
         urlOrIp.addActionListener(new ActionListener() {
-            /**
-             * 处理按钮点击事件，触发指定按钮的点击动作
-             * 
-             * @param e 触发的事件对象
-             */
             @Override
             public void actionPerformed(ActionEvent e) {
                 actionButton.doClick();
             }
         });
-        
+
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         inputPanel.setBackground(UIManager.getColor("Panel.background"));
         inputPanel.add(urlOrIp, BorderLayout.CENTER);
@@ -148,12 +202,6 @@ public class Window implements WindowInterface {
         
         actionButton.setPreferredSize(new Dimension(100, 30));
         actionButton.addActionListener(new ActionListener() {
-            /**
-             * 处理用户输入的URL或IP地址，检查是否包含敏感关键词
-             * 如果包含敏感词，显示安全警告对话框；否则直接开始扫描
-             * 
-             * @param e 触发此操作的事件对象
-            */
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = urlOrIp.getText().trim();
@@ -164,24 +212,25 @@ public class Window implements WindowInterface {
                 }
                 
                 List<String> keywords = Arrays.asList(".cn", ".gov.cn", ".xin");
-                List<String> matches = keywords.stream()
-                    .filter(keyword -> text.toLowerCase().contains(keyword.toLowerCase()))
-                    .collect(Collectors.toList());
+                List<String> matches = new ArrayList<String>();
+                for (String keyword : keywords) {
+                    if (text.toLowerCase().contains(keyword.toLowerCase())) {
+                        matches.add(keyword);
+                    }
+                }
                 
                 logger.info(text);
-                logger.info("匹配到的关键字：{}", matches);
-                logger.info("匹配到的关键字数量：{}", matches.size());
+                logger.info("匹配到的关键字：" + matches);
+                logger.info("匹配到的关键字数量：" + matches.size());
                 
                 if (!matches.isEmpty() && !isUserAcceptTheCnWarning) {
                     Alert.showSecurityWarning(
                         new Consumer<String>() {
                             @Override
                             public void accept(String url) {
-                                logger.warn("用户已确认，开始扫描: {}", url);
-
+                                logger.warn("用户已确认，开始扫描: " + url);
                                 isUserAcceptTheCnWarning = true;
                                 isAttackBtnTriggered = true;
-
                                 networkData.setHost(text);
                                 
                                 attack.attack(isAttackBtnTriggered, new Runnable() {
@@ -218,10 +267,13 @@ public class Window implements WindowInterface {
         
         this.setRadioOptionAttackMode(frame);
         
-        frame.getContentPane().add(inputPanel, BorderLayout.NORTH);
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.add(inputPanel, BorderLayout.NORTH);
+        mainPanel.add(bottomPanel, BorderLayout.CENTER);
         
+        frame.getContentPane().add(mainPanel, BorderLayout.NORTH);
         this.setDropDownMenu(inputPanel);
-
     }
 
     /**
@@ -322,6 +374,9 @@ public class Window implements WindowInterface {
 
     private void setConsole(JFrame frame) {
         console.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14)); 
+        console.setEditable(false);
+        console.setFocusable(true);
+        console.setAutoscrolls(true);
 
         JScrollPane scrollPane = new JScrollPane(
             console, 
