@@ -8,7 +8,12 @@ public class Hydra implements HydraInterface{
 
     public String filePathUser;
     public String filePathPassword;
+    public String F;
 
+    public String getF() {
+        return F;
+    }
+    
     public String getUserFile() {
         return filePathUser;
     }
@@ -16,6 +21,10 @@ public class Hydra implements HydraInterface{
     public String getPasswordFile() {
         return filePathPassword;
     }
+
+    public void setF(String F) {
+        this.F = F;
+    } 
 
     public void setUserFile(String filePathUser) {
         this.filePathUser = filePathUser;
