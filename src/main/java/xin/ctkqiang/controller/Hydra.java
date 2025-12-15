@@ -6,20 +6,33 @@ import xin.ctkqiang.utilities.Logger;
 public class Hydra implements HydraInterface{
     private static final Logger logger = new Logger();
 
+    public boolean provideUserFile;
+    public boolean providePasswordFile;
+
     public String filePathUser;
     public String filePathPassword;
     public String F;
 
+    public Hydra() { }
+
     public String getF() {
         return F;
     }
-    
+
     public String getUserFile() {
         return filePathUser;
     }
 
     public String getPasswordFile() {
         return filePathPassword;
+    }
+
+    public boolean isProvideUserFile() {
+        return provideUserFile;
+    }
+
+    public boolean isProvidePasswordFile() {
+        return providePasswordFile;
     }
 
     public void setF(String F) {
@@ -32,6 +45,14 @@ public class Hydra implements HydraInterface{
 
     public void setPasswordFile(String filePathPassword) {
         this.filePathPassword = filePathPassword;
+    }
+
+    public void setProvideUserFile(boolean  doProvideUserFile) {
+        this.provideUserFile = doProvideUserFile;
+    }
+
+    public void setProvidePasswordFile(boolean  doProvidePasswordFile) {
+        this.providePasswordFile = doProvidePasswordFile;
     }
 
     @Override
