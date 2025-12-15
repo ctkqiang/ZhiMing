@@ -34,7 +34,7 @@ public class PackageManager {
         }
     }
     
-    private boolean checkHydraAvailability() {
+    public boolean checkHydraAvailability() {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder();
             
