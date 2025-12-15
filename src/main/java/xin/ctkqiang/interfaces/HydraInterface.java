@@ -5,5 +5,5 @@ public interface HydraInterface {
 
     public void onClose();
 
-    public void bruteForceHttpPostForm(String url, int port, int threads );
+    public void bruteForceHttpPostForm(String url, int port, int threads, int timeout);
 }
