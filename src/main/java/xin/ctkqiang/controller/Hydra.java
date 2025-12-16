@@ -13,6 +13,9 @@ public class Hydra implements HydraInterface{
     public String filePathPassword;
     public String F;
 
+    public String user;
+
+
     public Hydra() { }
 
     public String getF() {
@@ -21,6 +24,10 @@ public class Hydra implements HydraInterface{
 
     public String getUserFile() {
         return filePathUser;
+    }
+
+    public String getUser() {
+        return user;
     }
 
     public String getPasswordFile() {
@@ -55,6 +62,10 @@ public class Hydra implements HydraInterface{
         this.providePasswordFile = doProvidePasswordFile;
     }
 
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     @Override
     public void onInit() {
         logger.info("Hydra 模块初始化完成");
@@ -69,6 +80,15 @@ public class Hydra implements HydraInterface{
     public void bruteForceHttpPostForm(String url, int port, int threads, int timeout) {
         logger.info("开始进行 HTTP POST 暴力破解");
 
-        String cmd = "hydra ";
+        String cmd; 
+
+        // hydra -L user.txt  -P rockyou.txt -f -t 1 -s 6022 -W 100000 -w 75  -vV 'http-post-form://urllogin:email=^USER^&password=^PASS^:F=用户名或密码错误'
+        if (providePasswordFile && provideUserFile) {
+            cmd = "hydra -L " + filePathUser + "  -P " + filePathPassword + " -f -t " + threads + " -s " + port + " -W 100000 -w 75  -vV 'http-post-form://" + url + ":email=^USER^&password=^PASS^:F=用户名或密码错误'";
+        }
+
+        else if (providePasswordFile && !provideUserFile) {
+            cmd = "hydra -l " + getUser() + "-P " + filePathPassword + " -f -t " + threads + " -s " + port + " -W 100000 -w 75  -vV 'http-post-form://" + url + ":email=^USER^&password=^PASS^:F=用户名或密码错误'";
+        } 
     }
 }
