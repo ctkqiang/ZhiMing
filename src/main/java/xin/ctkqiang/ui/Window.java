@@ -221,6 +221,7 @@ public class Window implements WindowInterface {
                 
                 List<String> keywords = Arrays.asList(".cn", ".gov.cn", ".xin");
                 List<String> matches = new ArrayList<String>();
+                
                 for (String keyword : keywords) {
                     if (text.toLowerCase().contains(keyword.toLowerCase())) {
                         matches.add(keyword);

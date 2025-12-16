@@ -1,0 +1,7 @@
+{
+    "codingcopilot.autoRun": true,
+    "codingcopilot.taskList": true,
+    "codingcopilot.enableCompletionLanguage": {
+        "scminput": false
+    }
+}
