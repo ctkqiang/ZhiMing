@@ -33,7 +33,7 @@ public class PackageManager {
                 );
             }
         } catch (Exception e) {
-            logger.error("导入包失败：{}", e.getMessage());
+            logger.error("导入包失败：" + e.getMessage());
         }
     }
     
@@ -56,7 +56,7 @@ public class PackageManager {
             // 添加调试：打印PATH环境变量
             Map<String, String> env = processBuilder.environment();
             String path = env.get("PATH");
-            logger.debug("当前PATH环境变量: {}", path);
+            logger.debug("当前PATH环境变量: " + path);
             
             Process process = processBuilder.start();
             
@@ -72,11 +72,10 @@ public class PackageManager {
             
             int exitCode = process.waitFor();
             
-            // 详细的调试信息
             logger.debug("命令执行结果:");
-            logger.debug("  退出码: {}", exitCode);
-            logger.debug("  输出内容: {}", output.toString().trim());
-            logger.debug("  输出长度: {} 字符", output.length());
+            logger.debug("  退出码:" + exitCode);
+            logger.debug("  输出内容:" + output.toString().trim());
+            logger.debug("  输出长度: {%s} 字符", output.length());
             
             // 如果退出码不为0，但输出中包含hydra版本信息，也算可用
             boolean available = exitCode == 0;
@@ -88,8 +87,8 @@ public class PackageManager {
             return available;
             
         } catch (Exception e) {
-            logger.debug("Hydra可用性检查失败: {}", e.getMessage());
-            logger.debug("异常详情:", e);  // 这会打印堆栈跟踪
+            logger.debug("Hydra可用性检查失败:" + e.getMessage());
+            logger.debug("异常详情:" + e); 
             return false;
         }
     }
