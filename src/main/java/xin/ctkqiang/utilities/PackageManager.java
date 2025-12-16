@@ -1,7 +1,6 @@
 package xin.ctkqiang.utilities;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Map;
 
@@ -46,7 +45,7 @@ public class PackageManager {
                 command = new String[]{"cmd.exe", "/c", "hydra", "--version"};
                 logger.debug("Windows系统，使用命令: cmd.exe /c hydra --version");
             } else {
-                command = new String[]{"hydra", "--version"};
+                command = new String[]{"hydra"};
                 logger.debug("Unix系统，使用命令: hydra --version");
             }
             
