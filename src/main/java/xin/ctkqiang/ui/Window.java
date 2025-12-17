@@ -24,14 +24,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
+import java.io.File;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -44,10 +42,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import javax.swing.text.Highlighter;
-import javax.swing.text.Keymap;
-import javax.swing.text.Highlighter.Highlight;
-
 import xin.ctkqiang.common.ZhiMingContext;
 import xin.ctkqiang.controller.Attack;
 import xin.ctkqiang.interfaces.WindowInterface;
@@ -58,6 +52,8 @@ import xin.ctkqiang.model.NetworkData;
 import xin.ctkqiang.model.Platform;
 import xin.ctkqiang.utilities.FileUtilities;
 import xin.ctkqiang.utilities.Logger;
+import xin.ctkqiang.service.DownloadService;
+import xin.ctkqiang.service.DownloadServiceImpl;
 
 @ZhiMing(debug = true)
 public class Window implements WindowInterface {
@@ -65,8 +61,8 @@ public class Window implements WindowInterface {
 
     private static final Logger logger = new Logger();
     private FileUtilities fileUtilities = new FileUtilities();
+    private final DownloadService downloadService = new DownloadServiceImpl();
     
-
     private Attack attack = new Attack();
 
     private JFrame frame = new JFrame();
@@ -118,7 +114,6 @@ public class Window implements WindowInterface {
                 requestBody.insert(template, pos);
             }
         });
-
 
         JButton clearBtn = new JButton("清空");
         clearBtn.addActionListener(new ActionListener() {
@@ -300,6 +295,10 @@ public class Window implements WindowInterface {
 
     @Override
     public void onClose() {
+        // 清理下载服务资源
+        if (downloadService instanceof DownloadServiceImpl) {
+            ((DownloadServiceImpl) downloadService).shutdown();
+        }
         WindowInterface.super.onClose();
     }
 
@@ -366,6 +365,8 @@ public class Window implements WindowInterface {
         JMenuItem importPasswordMenuItem = new JMenuItem("导入密码 (.txt)");
         JMenuItem exitMenuItem = new JMenuItem("退出");
         JMenuItem issueMenuItem = new JMenuItem("Issues");
+        JMenuItem downloadDefaultPasswordListMenuItem = new JMenuItem("下载默认密码列表");
+        JMenuItem updateDownloadRockYoutxt = new JMenuItem("更新下载 rockyou.txt");
 
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
         saveMenuItem.setActionCommand("保存");
@@ -424,6 +425,20 @@ public class Window implements WindowInterface {
             }
         });
 
+        downloadDefaultPasswordListMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleDownloadDefaultPasswordList();
+            }
+        });
+
+        updateDownloadRockYoutxt.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleDownloadPasswordDictionary();
+            }
+        });
+
         fileMenu.setBackground(Color.WHITE);
         helpMenu.setBackground(Color.WHITE);
 
@@ -431,6 +446,7 @@ public class Window implements WindowInterface {
         this.menubar.add(helpMenu);
 
         helpMenu.add(issueMenuItem);
+        helpMenu.add(downloadDefaultPasswordListMenuItem);
 
         fileMenu.add(saveMenuItem);
         fileMenu.add(showPasswordListMenuItem);
@@ -579,6 +595,249 @@ public class Window implements WindowInterface {
      * @param imagePath 图标图片的资源路径
      * @throws Exception 如果无法加载指定路径的图标资源
     */
+    /**
+     * 处理密码字典下载
+     * 提供用户友好的下载界面和进度显示
+     */
+    /**
+     * 处理默认密码列表下载
+     * 专为Issues菜单中的"Download Default Password List"功能设计
+     */
+    private void handleDownloadDefaultPasswordList() {
+        if (downloadService.isDownloading()) {
+            JOptionPane.showMessageDialog(
+                frame,
+                "下载已在进行中，请稍候...",
+                "下载提示",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+        
+        // 获取默认下载目录
+        String defaultDownloadsDir = System.getProperty("user.home") + "/Downloads";
+        File downloadsDir = new File(defaultDownloadsDir);
+        if (!downloadsDir.exists()) {
+            downloadsDir = new File(System.getProperty("user.dir"));
+        }
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            frame,
+            String.format("是否下载默认密码列表到以下目录？\n%s\n\n文件将保存为: password.txt", 
+                         downloadsDir.getAbsolutePath()),
+            "下载默认密码列表",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        // 创建专门的进度对话框
+        javax.swing.JDialog progressDialog = new javax.swing.JDialog(frame, "下载默认密码列表", true);
+        progressDialog.setLayout(new java.awt.BorderLayout(10, 10));
+        progressDialog.setSize(450, 180);
+        progressDialog.setLocationRelativeTo(frame);
+        progressDialog.setResizable(false);
+        
+        // 创建进度面板
+        javax.swing.JPanel progressPanel = new javax.swing.JPanel(new java.awt.BorderLayout(10, 10));
+        progressPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        javax.swing.JProgressBar progressBar = new javax.swing.JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+        progressBar.setPreferredSize(new Dimension(400, 25));
+        
+        javax.swing.JLabel statusLabel = new javax.swing.JLabel("正在准备下载...");
+        statusLabel.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+        
+        javax.swing.JButton cancelButton = new javax.swing.JButton("取消下载");
+        javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
+        buttonPanel.add(cancelButton);
+        
+        progressPanel.add(statusLabel, java.awt.BorderLayout.NORTH);
+        progressPanel.add(progressBar, java.awt.BorderLayout.CENTER);
+        progressPanel.add(buttonPanel, java.awt.BorderLayout.SOUTH);
+        
+        progressDialog.add(progressPanel, java.awt.BorderLayout.CENTER);
+        
+        // 设置取消按钮事件
+        cancelButton.addActionListener(e -> {
+            downloadService.cancelDownload();
+            progressDialog.dispose();
+            JOptionPane.showMessageDialog(
+                frame,
+                "下载已取消",
+                "取消提示",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+        
+        // 启动下载
+        downloadService.downloadPasswordDictionary(downloadsDir.getAbsolutePath(), 
+            new DownloadService.DownloadProgressCallback() {
+                @Override
+                public void onProgress(int percentage, long downloadedBytes, long totalBytes, 
+                                     double speedKBps, int etaSeconds) {
+                    SwingUtilities.invokeLater(() -> {
+                        progressBar.setValue(percentage);
+                        String speedStr = String.format("%.1f KB/s", speedKBps);
+                        String etaStr = etaSeconds > 0 ? 
+                            String.format("预计剩余: %d秒", etaSeconds) : "计算中...";
+                        statusLabel.setText(String.format("下载中... %s (%s)", speedStr, etaStr));
+                    });
+                }
+                
+                @Override
+                public void onComplete(String filePath, long fileSize, String sha256) {
+                    SwingUtilities.invokeLater(() -> {
+                        progressDialog.dispose();
+                        
+                        // 重命名为标准格式
+                        File downloadedFile = new File(filePath);
+                        File renamedFile = new File(downloadedFile.getParent(), "password.txt");
+                        if (downloadedFile.renameTo(renamedFile)) {
+                            JOptionPane.showMessageDialog(
+                                frame,
+                                String.format("默认密码列表下载完成！\n\n文件位置: %s\n文件大小: %.2f MB\n校验和: %s...", 
+                                    renamedFile.getAbsolutePath(), 
+                                    fileSize / 1024.0 / 1024.0, 
+                                    sha256.substring(0, 8)),
+                                "下载成功",
+                                JOptionPane.INFORMATION_MESSAGE
+                            );
+                        } else {
+                            JOptionPane.showMessageDialog(
+                                frame,
+                                String.format("下载完成！\n文件位置: %s\n文件大小: %.2f MB", 
+                                    filePath, fileSize / 1024.0 / 1024.0),
+                                "下载成功",
+                                JOptionPane.INFORMATION_MESSAGE
+                            );
+                        }
+                    });
+                }
+                
+                @Override
+                public void onError(String errorMessage, Exception exception) {
+                    SwingUtilities.invokeLater(() -> {
+                        progressDialog.dispose();
+                        logger.error("默认密码列表下载失败: {}", errorMessage, exception);
+                        
+                        String detailedMessage = "下载失败: " + errorMessage;
+                        if (exception != null) {
+                            detailedMessage += "\n\n详细信息: " + exception.getMessage();
+                        }
+                        
+                        JOptionPane.showMessageDialog(
+                            frame,
+                            detailedMessage,
+                            "下载失败",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    });
+                }
+            });
+        
+        progressDialog.setVisible(true);
+    }
+
+    private void handleDownloadPasswordDictionary() {
+        if (downloadService.isDownloading()) {
+            JOptionPane.showMessageDialog(
+                frame,
+                "下载已在进行中，请稍候...",
+                "提示",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            frame,
+            "是否下载最新的密码字典文件？\n文件大小约15MB，请确保网络连接正常。",
+            "下载确认",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        // 创建进度对话框
+        javax.swing.JDialog progressDialog = new javax.swing.JDialog(frame, "下载进度", true);
+        progressDialog.setLayout(new java.awt.BorderLayout());
+        progressDialog.setSize(400, 200);
+        progressDialog.setLocationRelativeTo(frame);
+        
+        javax.swing.JProgressBar progressBar = new javax.swing.JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+        
+        javax.swing.JLabel statusLabel = new javax.swing.JLabel("准备下载...");
+        statusLabel.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+        
+        javax.swing.JButton cancelButton = new javax.swing.JButton("取消");
+        javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
+        buttonPanel.add(cancelButton);
+        
+        progressDialog.add(progressBar, java.awt.BorderLayout.CENTER);
+        progressDialog.add(statusLabel, java.awt.BorderLayout.NORTH);
+        progressDialog.add(buttonPanel, java.awt.BorderLayout.SOUTH);
+        
+        // 设置取消按钮事件
+        cancelButton.addActionListener(e -> {
+            downloadService.cancelDownload();
+            progressDialog.dispose();
+        });
+        
+        // 启动下载
+        String targetDir = System.getProperty("user.dir");
+        downloadService.downloadPasswordDictionary(targetDir, new DownloadService.DownloadProgressCallback() {
+            @Override
+            public void onProgress(int percentage, long downloadedBytes, long totalBytes, 
+                                 double speedKBps, int etaSeconds) {
+                SwingUtilities.invokeLater(() -> {
+                    progressBar.setValue(percentage);
+                    String speedStr = String.format("%.1f KB/s", speedKBps);
+                    String etaStr = etaSeconds > 0 ? String.format("剩余: %d秒", etaSeconds) : "计算中...";
+                    statusLabel.setText(String.format("下载中... %s (%s)", speedStr, etaStr));
+                });
+            }
+            
+            @Override
+            public void onComplete(String filePath, long fileSize, String sha256) {
+                SwingUtilities.invokeLater(() -> {
+                    progressDialog.dispose();
+                    JOptionPane.showMessageDialog(
+                        frame,
+                        String.format("下载完成！\n文件路径: %s\n文件大小: %.2f MB\n校验和: %s", 
+                            filePath, fileSize / 1024.0 / 1024.0, sha256.substring(0, 8) + "..."),
+                        "下载成功",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                });
+            }
+            
+            @Override
+            public void onError(String errorMessage, Exception exception) {
+                SwingUtilities.invokeLater(() -> {
+                    progressDialog.dispose();
+                    logger.error("下载失败: {}", errorMessage, exception);
+                    JOptionPane.showMessageDialog(
+                        frame,
+                        "下载失败: " + errorMessage,
+                        "错误",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                });
+            }
+        });
+        
+        progressDialog.setVisible(true);
+    }
+    
     private void setAppIcon(JFrame frame, String imagePath) {
         try {
             Image icon = Toolkit.getDefaultToolkit().getImage(
