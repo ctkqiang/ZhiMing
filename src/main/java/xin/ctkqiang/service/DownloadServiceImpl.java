@@ -4,15 +4,18 @@ import xin.ctkqiang.utilities.DownloadManager;
 import xin.ctkqiang.utilities.Logger;
 
 import java.io.IOException;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 下载服务实现类
  * 遵循单一职责原则(SRP)，只负责下载相关的业务逻辑
  * 通过组合而非继承复用DownloadManager的功能
+ * 
+ * 线程安全特性：
+ * - 使用AtomicBoolean确保下载状态的原子性
+ * - 使用线程池管理后台任务
+ * - 提供优雅关闭机制
  */
 public class DownloadServiceImpl implements DownloadService {
     
@@ -20,6 +23,8 @@ public class DownloadServiceImpl implements DownloadService {
     private final Logger logger;
     private final ExecutorService executorService;
     private final AtomicBoolean isDownloading;
+    private final long DOWNLOAD_TIMEOUT_MINUTES = 30;
+    private Future<?> currentDownloadTask;
     
     /**
      * 构造函数

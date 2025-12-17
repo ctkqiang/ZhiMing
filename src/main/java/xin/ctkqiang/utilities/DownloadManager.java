@@ -13,14 +13,11 @@ import java.security.MessageDigest;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.DosFileAttributeView;
 
 /**
  * 安全的文件下载管理器
  * 提供HTTPS下载、进度跟踪、完整性校验等功能
- * 作为底层下载引擎，被DownloadService封装使用
  */
 public class DownloadManager {
     
@@ -155,8 +152,9 @@ public class DownloadManager {
             connection.setRequestProperty("User-Agent", "ZhiMing-Security-Scanner/1.0");
             connection.setRequestMethod("GET");
             
-            // 启用SSL证书验证
-            connection.setHostnameVerifier((hostname, session) -> true); // 生产环境应严格验证
+            // 启用SSL证书验证（严格模式）
+            // 注意：生产环境应配置信任的证书，这里使用默认验证
+            connection.setHostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier());
             
             // 获取响应
             int responseCode = connection.getResponseCode();
@@ -211,7 +209,9 @@ public class DownloadManager {
             
             // 重命名为最终文件
             File finalFile = new File(targetDir, filename);
-            tempFile.renameTo(finalFile);
+            if (!tempFile.renameTo(finalFile)) {
+                throw new IOException("无法重命名临时文件到: " + finalFile.getAbsolutePath());
+            }
             
             // 设置文件权限（仅限Unix系统）
             setFilePermissions(finalFile.getAbsolutePath());
@@ -238,8 +238,12 @@ public class DownloadManager {
                 if (connection != null) connection.disconnect();
                 
                 // 如果下载未完成，删除临时文件
-                if (tempFile != null && tempFile.exists() && !tempFile.renameTo(new File(targetDir, filename))) {
-                    tempFile.delete();
+                if (tempFile != null && tempFile.exists()) {
+                    if (!tempFile.delete()) {
+                        logger.warn("无法删除临时文件: {}", tempFile.getAbsolutePath());
+                        // 尝试在JVM退出时删除
+                        tempFile.deleteOnExit();
+                    }
                 }
             } catch (IOException e) {
                 logger.debug("清理资源时出错: {}", e.getMessage());
